@@ -1,3 +1,6 @@
+import os
+import requests
+
 from sgnlp.models.emotion_entailment import (
     RecconEmotionEntailmentConfig,
     RecconEmotionEntailmentModel,
@@ -5,8 +8,7 @@ from sgnlp.models.emotion_entailment import (
     RecconEmotionEntailmentPreprocessor,
     RecconEmotionEntailmentPostprocessor,
 )
-import os
-import requests
+
 
 # Links to be updated
 MODEL_URL = "https://storage.googleapis.com/sgnlp/models/reccon_emotion_entailment/config.json"
