@@ -1,0 +1,4 @@
+import sgnlp
+
+if __name__ == '__main__':
+    print("check")
