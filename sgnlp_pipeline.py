@@ -9,7 +9,6 @@ from sgnlp.models.emotion_entailment import (
     RecconEmotionEntailmentPostprocessor,
 )
 
-
 # Links to be updated
 MODEL_URL = "https://storage.googleapis.com/sgnlp/models/reccon_emotion_entailment/config.json"
 CONFIG_URL = "https://storage.googleapis.com/sgnlp/models/reccon_emotion_entailment/pytorch_model.bin"
