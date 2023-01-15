@@ -17,9 +17,11 @@ from sgnlp.models.sentic_gcn import (
 CPU_COUNT = multiprocessing.cpu_count()
 MODEL_ARCHIVE_DIR = "./Models/ModelArchive/"
 
+
 def download_from_url(url, filename, save_path=MODEL_ARCHIVE_DIR):
     r = requests.get(url, allow_redirects=True)
     open(os.path.join(save_path, filename), 'wb').write(r.content)
+
 
 def download_from_urls(urls, filenames, cpu_count=CPU_COUNT):
     try:
@@ -76,58 +78,51 @@ def initialize_model():
 
     preprocessor = SenticGCNPreprocessor(
         tokenizer=tokenizer, embedding_model=embed_model,
-        senticnet= "./Models/ModelArchive/senticnet.pickle",
+        senticnet="./Models/ModelArchive/senticnet.pickle",
         device="cpu")
 
     postprocessor = SenticGCNPostprocessor()
 
-    return senticgcn_model, preprocessor,  postprocessor
+    return senticgcn_model, preprocessor, postprocessor
 
 
 def run_model(inputs):
-    senticgcn_model, preprocessor,  postprocessor = initialize_model()
+    senticgcn_model, preprocessor, postprocessor = initialize_model()
     processed_inputs, processed_indices = preprocessor(inputs)
     raw_outputs = senticgcn_model(processed_indices)
     post_outputs = postprocessor(processed_inputs=processed_inputs, model_outputs=raw_outputs)
     return post_outputs
 
 
-if __name__ == '__main__':
-    inputs_example = [
-        {  # Single word aspect
-            "aspects": ["service"],
-            "sentence": "To sum it up : service varies from good to mediorce , depending on which waiter you get ; generally it is just average ok .",
-        },
-        {  # Single-word, multiple aspects
-            "aspects": ["service", "decor"],
-            "sentence": "Everything is always cooked to perfection , the service is excellent, the decor cool and understated.",
-        },
-        {  # Multi-word aspect
-            "aspects": ["grilled chicken", "chicken"],
-            "sentence": "the only chicken i moderately enjoyed was their grilled chicken special with edamame puree .",
-        },
-    ]
-
-    post_outputs = run_model(inputs_example)
-
-    print(post_outputs[0])
-    # {'sentence': ['To', 'sum', 'it', 'up', ':', 'service', 'varies', 'from', 'good', 'to', 'mediorce', ',',
-    #               'depending', 'on', 'which', 'waiter', 'you', 'get', ';', 'generally', 'it', 'is', 'just',
-    #               'average', 'ok', '.'],
-    #  'aspects': [[5]],
-    #  'labels': [0]}
-
-    print(post_outputs[1])
-    # {'sentence': ['Everything', 'is', 'always', 'cooked', 'to', 'perfection', ',', 'the', 'service',
-    #                'is', 'excellent,', 'the', 'decor', 'cool', 'and', 'understated.'],
-    #  'aspects': [[8], [12]],
-    #  'labels': [1, 1]}
-
-    print(post_outputs[2])
-    # {'sentence': ['the', 'only', 'chicken', 'i', 'moderately', 'enjoyed', 'was', 'their', 'grilled',
-    #                'chicken', 'special', 'with', 'edamame', 'puree', '.'],
-    #  'aspects': [[8, 9], [2], [9]],
-    #  'labels': [1, 1, 1]}
-
-
-
+# if __name__ == '__main__':
+#     inputs_example = [
+#         {  # Single word aspect
+#             "aspects": ["service"],
+#             "sentence": "To sum it up : service varies from good to mediorce , depending on which waiter you get ; generally it is just average ok .",
+#         },
+#         {  # Single-word, multiple aspects
+#             "aspects": ["service", "decor"],
+#             "sentence": "Everything is always cooked to perfection , the service is excellent, the decor cool and understated.",
+#         },
+#         {  # Multi-word aspect
+#             "aspects": ["grilled chicken", "chicken"],
+#             "sentence": "The grilled chicken is the most horrible among all the dishes",
+#         },
+#     ]
+#
+#     post_outputs = run_model(inputs_example)
+#
+#     print(post_outputs[0])
+#     # {'sentence': ['To', 'sum', 'it', 'up', ':', 'service', 'varies', 'from', 'good', 'to', 'mediorce', ',',
+#     #               'depending', 'on', 'which', 'waiter', 'you', 'get', ';', 'generally', 'it', 'is', 'just',
+#     #               'average', 'ok', '.'],
+#     #  'aspects': [[5]],  Indicate the 0-indexed position of the aspect, including punctuation
+#     #  'labels': [0]}
+#
+#     print(post_outputs[1])
+#     # {'sentence': ['Everything', 'is', 'always', 'cooked', 'to', 'perfection', ',', 'the', 'service',
+#     #                'is', 'excellent,', 'the', 'decor', 'cool', 'and', 'understated.'],
+#     #  'aspects': [[8], [12]],
+#     #  'labels': [1, 1]}
+#
+#     print(post_outputs[2])
