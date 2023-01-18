@@ -1,6 +1,5 @@
 import os
 import requests
-import multiprocessing
 import concurrent.futures
 
 from sgnlp.models.sentic_gcn import (
@@ -14,7 +13,7 @@ from sgnlp.models.sentic_gcn import (
     download_tokenizer_files,
 )
 
-CPU_COUNT = multiprocessing.cpu_count()
+CPU_COUNT = os.cpu_count()
 MODEL_ARCHIVE_DIR = "./Models/ModelArchive/"
 
 
@@ -23,7 +22,7 @@ def download_from_url(url, filename, save_path=MODEL_ARCHIVE_DIR):
     open(os.path.join(save_path, filename), 'wb').write(r.content)
 
 
-def download_from_urls(urls, filenames, cpu_count=CPU_COUNT):
+def download_from_urls(urls, filenames):
     try:
         assert len(urls) == len(filenames)
         num_workers = CPU_COUNT if CPU_COUNT < len(urls) else len(urls)

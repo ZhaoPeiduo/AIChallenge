@@ -257,7 +257,7 @@ def log_in(driver, env, timeout=20, wait=4):
     sleep(random.uniform(wait, wait + 1))
 
 
-def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position,
+def keep_scroling(driver, data, queue, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position,
                   save_images=False):
     """ scrolling function for tweets crawling"""
 
@@ -279,9 +279,9 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
                 if tweet_id not in tweet_ids:
                     tweet_ids.add(tweet_id)
                     data.append(tweet)
+                    queue.put(tweet)
                     last_date = str(tweet[2])
                     print("Tweet made at: " + str(last_date) + " is found.")
-                    writer.writerow(tweet)
                     tweet_parsed += 1
                     if tweet_parsed >= limit:
                         break
@@ -304,7 +304,7 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
             else:
                 last_position = curr_position
                 break
-    return driver, data, writer, tweet_ids, scrolling, tweet_parsed, scroll, last_position
+    return driver, data, queue, tweet_ids, scrolling, tweet_parsed, scroll, last_position
 
 
 def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit=float('inf')):
