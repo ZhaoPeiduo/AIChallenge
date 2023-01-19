@@ -107,7 +107,6 @@ def run(num_of_days: int, word: str, limit: int) -> List:
     workload_assignment = split_task(num_of_days)
     input_dictionaries = generate_input_dictionaries(workload_assignment, word, limit)
 
-    futures = []
     product_queue = queue.Queue()
     result_queue = queue.Queue()
     print(input_dictionaries)
@@ -116,7 +115,6 @@ def run(num_of_days: int, word: str, limit: int) -> List:
         for input_dictionary in input_dictionaries:
             executor.submit(producer, product_queue, input_dictionary)
             future = executor.submit(consumer, product_queue, result_queue, word)
-            futures.append(future)
     evaluation_results = list(result_queue.queue)
     return evaluation_results
 
@@ -126,6 +124,6 @@ if __name__ == '__main__':
     # Silent debug info
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
-    print(run(5, "covid", 40))
+    print(run(10, "covid", 40))
     end = time.time()
     print(f"Total time taken for scraping 5 days: {end - start}")
