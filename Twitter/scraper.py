@@ -1,6 +1,10 @@
-from Scweet_Modified import scweet
-import pandas as pd
-from IPython.display import display
+from Twitter.Scweet_Modified import scweet
+
+'''
+columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis',
+   'Comments', 'Likes', 'Retweets','Image link', 'Tweet URL']
+'''
+
 
 DEFAULT_SETTING = {
     "from_account": None,
@@ -9,35 +13,31 @@ DEFAULT_SETTING = {
     "display_type": "top",
     "save_images": False,
     "lang": "en",
-    "resume": False,
-    "filter_replies": False,
+    "filter_replies": True,
     "proximity": True,
 }
 
 
-def search_by_words(words, since, limit):
+def search_by_words(product_queue, input_dict):
     customised_setting = {
-        "words": words,
-        "since": since,
-        "limit": limit
+        "queue": product_queue,
+        "words": [input_dict["words"]],
+        "since": input_dict["since"],
+        "until": input_dict["until"],
+        "limit": input_dict["limit"]
     }
-
     customised_setting.update(DEFAULT_SETTING)
     return scweet.scrape(**customised_setting)
 
 
-def search_by_hashtag(hashtag, since, limit):
+def search_by_hashtag(product_queue, input_dict):
     customised_setting = {
-        "hashtag": hashtag,
-        "since": since,
-        "limit": limit
+        "queue": product_queue,
+        "hashtag": input_dict["hashtag"],
+        "since": input_dict["since"],
+        "until": input_dict["until"],
+        "limit": input_dict["limit"]
     }
 
     customised_setting.update(DEFAULT_SETTING)
     return scweet.scrape(**customised_setting)
-
-
-if __name__ == '__main__':
-    # data = search_by_words(["Covid"], "2022-01-10", 40)
-    data = pd.read_csv("./outputs/Covid_2022-01-10_2023-01-15.csv")
-    display(data)
