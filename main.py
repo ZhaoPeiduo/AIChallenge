@@ -3,11 +3,10 @@ import os
 from Models import sgnlp_pipeline
 from Twitter import scraper
 import concurrent.futures
-import multiprocessing
 from itertools import repeat
 from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
-import math
+import queue
 import logging
 
 
@@ -17,15 +16,14 @@ columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', '
 '''
 
 TEXT_POSITION = 4  # Refer to the column legend above
-CPU_COUNT = os.cpu_count()
 
 
-def producer(product_queue: multiprocessing.Queue, input_dict: Dict) -> None:
+def producer(product_queue: queue.Queue, input_dict: Dict) -> None:
     print("producer called!", flush=True)
     scraper.search_by_words(product_queue, input_dict)
 
 
-def consumer(product_queue: multiprocessing.Queue, result_queue: multiprocessing.Queue, word: str) -> List[List]:
+def consumer(product_queue: queue.Queue, result_queue: queue.Queue, word: str) -> None:
     print("consumer called!", flush=True)
     while True:
         tweet = product_queue.get()
@@ -53,8 +51,8 @@ def consumer(product_queue: multiprocessing.Queue, result_queue: multiprocessing
         input_dict["sentence"] = tweet_text
 
         try:
-            output = sgnlp_pipeline.run_model([input_dict])
-            result_queue.put(output)
+            result = sgnlp_pipeline.run_model([input_dict])
+            result_queue.put(result)
         except RuntimeError:
             print(f"{tweet_text} cannot be processed")
 
@@ -72,26 +70,16 @@ def reformat_input(original_tweet: str, word: str) -> str:
     return reformat_tweet
 
 
-def split_task(num_of_days:int) ->  List[Tuple]:
+def split_task(num_of_days: int) -> List[Tuple]:
     current_time = datetime.now()
     start = current_time - timedelta(days=num_of_days)
+    end = start + timedelta(days=1)
     result = []
-    if num_of_days < CPU_COUNT:
-        end = start + timedelta(days=1)
-        for i in range(num_of_days):
-            result.append((start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')))
-            start += timedelta(days=1)
-            end += timedelta(days=1)
-    else:
-        split_size = math.ceil(num_of_days / CPU_COUNT)  # Get floor value
-        print(f"split size: {split_size}")
-        end = start + timedelta(days=split_size)
-        for i in range(CPU_COUNT - 1):
-            result.append((start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')))
-            start += timedelta(days=split_size)
-            end += timedelta(days=split_size)
-        # Assign slightly larger workload to the last CPU.
-        result.append((start.strftime('%Y-%m-%d'), current_time.strftime('%Y-%m-%d')))
+
+    for i in range(num_of_days):
+        result.append((start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')))
+        start += timedelta(days=1)
+        end += timedelta(days=1)
 
     return result
 
@@ -119,23 +107,19 @@ def run(num_of_days: int, word: str, limit: int) -> List:
     workload_assignment = split_task(num_of_days)
     input_dictionaries = generate_input_dictionaries(workload_assignment, word, limit)
 
-    num_worker = len(workload_assignment)
     futures = []
-    product_queues = [multiprocessing.Queue() for _ in range(num_worker)]
-    result_queues = [multiprocessing.Queue() for _ in range(num_worker)]
-    print(product_queues, result_queues)
+    product_queue = queue.Queue()
+    result_queue = queue.Queue()
     print(input_dictionaries)
 
     #TODO: Debug consumer and parallel parts
-    with concurrent.futures.ThreadPoolExecutor(num_worker) as executor:
-        executor.map(producer, product_queues, input_dictionaries)
-        executor.map(consumer, product_queues, result_queues, repeat(word, num_worker))
-        # for i in range(num_worker):
-        #     executor.submit(producer, product_queues[i], input_dictionaries[i])
-        #     future = executor.submit(consumer, product_queues[i], result_queues[i], word)
-        #     futures.append(future)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for input_dictionary in input_dictionaries:
+            executor.submit(producer, product_queue, input_dictionary)
+            future = executor.submit(consumer, product_queue, result_queue, word)
+            futures.append(future)
         # concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_EXCEPTION)
-    evaluation_results = flatten([list(x.queue) for x in result_queues])
+    evaluation_results = list(result_queue.queue)
     # evaluation_results = flatten([x.result() for x in futures])
     return evaluation_results
 
@@ -144,11 +128,11 @@ if __name__ == '__main__':
     # Silent debug info
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
-    # print(run(1, "covid", 40))
-    prod_queue = multiprocessing.Queue()
-    res_queue = multiprocessing.Queue()
-    producer(prod_queue, {'words': 'covid', 'since': '2023-01-17', 'until': '2023-01-18', 'limit': 40})
-    consumer(prod_queue, res_queue, "covid")
-    output = []
-    while not res_queue.empty():
-        print(res_queue.get())
+    print(run(5, "covid", 40))
+    # prod_queue = multiprocessing.Queue()
+    # res_queue = multiprocessing.Queue()
+    # producer(prod_queue, {'words': 'covid', 'since': '2023-01-17', 'until': '2023-01-18', 'limit': 40})
+    # consumer(prod_queue, res_queue, "covid")
+    # output = []
+    # while not res_queue.empty():
+    #     print(res_queue.get())
