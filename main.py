@@ -47,7 +47,9 @@ def consumer(product_queue: queue.Queue, result_queue: queue.Queue, word: str) -
         if word not in tweet_text.lower():
             continue
         elif tweet_text.find(word) == -1:
+            print(f"{tweet_text} to be modified", flush=True)
             tweet_text = reformat_input(tweet_text, word)
+            print(f"{tweet_text} after modified", flush=True)
         input_dict["sentence"] = tweet_text
 
         try:
