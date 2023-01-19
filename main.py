@@ -1,13 +1,11 @@
-import os
-
 from Models import sgnlp_pipeline
 from Twitter import scraper
 import concurrent.futures
-from itertools import repeat
 from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
 import queue
 import logging
+import time
 
 
 '''
@@ -63,9 +61,9 @@ def reformat_input(original_tweet: str, word: str) -> str:
     index = original_tweet.lower().find(word)
     front = index
     back = index
-    while original_tweet[front] != " ":
+    while original_tweet[front] != " " and front > -1:
         front -= 1
-    while original_tweet[back] != " ":
+    while original_tweet[back] != " " and back < len(original_tweet):
         back += 1
     # Shift front pointer to retain the space
     reformat_tweet = original_tweet.replace(original_tweet[front + 1:back], word)
@@ -114,27 +112,20 @@ def run(num_of_days: int, word: str, limit: int) -> List:
     result_queue = queue.Queue()
     print(input_dictionaries)
 
-    #TODO: Debug consumer and parallel parts
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for input_dictionary in input_dictionaries:
             executor.submit(producer, product_queue, input_dictionary)
             future = executor.submit(consumer, product_queue, result_queue, word)
             futures.append(future)
-        # concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_EXCEPTION)
     evaluation_results = list(result_queue.queue)
-    # evaluation_results = flatten([x.result() for x in futures])
     return evaluation_results
 
 
 if __name__ == '__main__':
+    start = time.time()
     # Silent debug info
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
     print(run(5, "covid", 40))
-    # prod_queue = multiprocessing.Queue()
-    # res_queue = multiprocessing.Queue()
-    # producer(prod_queue, {'words': 'covid', 'since': '2023-01-17', 'until': '2023-01-18', 'limit': 40})
-    # consumer(prod_queue, res_queue, "covid")
-    # output = []
-    # while not res_queue.empty():
-    #     print(res_queue.get())
+    end = time.time()
+    print(f"Total time taken for scraping 5 days: {end - start}")
