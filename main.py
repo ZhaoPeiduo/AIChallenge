@@ -124,6 +124,6 @@ if __name__ == '__main__':
     # Silent debug info
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
-    print(run(10, "covid", 40))
+    print(run(5, "covid", 40))
     end = time.time()
     print(f"Total time taken for scraping 5 days: {end - start}")
