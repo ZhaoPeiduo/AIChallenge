@@ -1,0 +1,9 @@
+{
+  "architectures": [
+    "SenticGCNEmbeddingModel"
+  ],
+  "embed_dim": 300,
+  "torch_dtype": "float32",
+  "transformers_version": "4.15.0",
+  "vocab_size": 17662
+}

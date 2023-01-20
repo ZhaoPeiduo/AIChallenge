@@ -1,0 +1,1 @@
+{"do_lower_case": true, "unk_token": "<unk>", "pad_token": "<pad>", "tokenizer_class": "SenticGCNTokenizer"}
