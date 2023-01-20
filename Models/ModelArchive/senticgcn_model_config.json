@@ -1,0 +1,14 @@
+{
+  "_name_or_path": "/tmp/tmpudjpaday/repeat5/pytorch_model.bin",
+  "architectures": [
+    "SenticGCNModel"
+  ],
+  "device": "cuda",
+  "dropout": 0.3,
+  "embed_dim": 300,
+  "hidden_dim": 300,
+  "loss_function": "cross_entropy",
+  "polarities_dim": 3,
+  "torch_dtype": "float32",
+  "transformers_version": "4.15.0"
+}
