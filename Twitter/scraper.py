@@ -9,9 +9,8 @@ columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', '
 DEFAULT_SETTING = {
     "from_account": None,
     "interval": 1,
-    "headless": True,
+    "headless": False,
     "display_type": "top",
-    "save_images": False,
     "lang": "en",
     "filter_replies": True,
     "proximity": True,
@@ -27,7 +26,7 @@ def search_by_words(product_queue, input_dict):
         "limit": input_dict["limit"]
     }
     customised_setting.update(DEFAULT_SETTING)
-    return scweet.scrape(**customised_setting)
+    scweet.scrape(**customised_setting)
 
 
 def search_by_hashtag(product_queue, input_dict):
@@ -40,4 +39,4 @@ def search_by_hashtag(product_queue, input_dict):
     }
 
     customised_setting.update(DEFAULT_SETTING)
-    return scweet.scrape(**customised_setting)
+    scweet.scrape(**customised_setting)

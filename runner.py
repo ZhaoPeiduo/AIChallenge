@@ -1,12 +1,16 @@
+import csv
+import os.path
+import threading
+
 from Models import sgnlp_pipeline
 from Twitter import scraper
+from Twitter.Scweet_Modified.scweet import DATA_DIR, CSV_PATH
 import concurrent.futures
 from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
 import queue
 import logging
 import time
-
 
 '''
 columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis',
@@ -52,6 +56,12 @@ def consumer(product_queue: queue.Queue, result_queue: queue.Queue, word: str) -
 
         try:
             result = sgnlp_pipeline.run_model([input_dict])
+            tweet[TEXT_POSITION] = tweet_text
+            csv_writer_lock = threading.Lock()
+            with csv_writer_lock:
+                with open(CSV_PATH, 'a', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(tweet)
             result_queue.put(result)
         except RuntimeError:
             print(f"{tweet_text} cannot be processed")
@@ -63,7 +73,7 @@ def reformat_input(original_tweet: str, word: str) -> str:
     back = index
     while original_tweet[front] != " " and front > -1:
         front -= 1
-    while original_tweet[back] != " " and back < len(original_tweet):
+    while original_tweet[back] != " " and back < len(original_tweet) - 1:
         back += 1
     # Shift front pointer to retain the space
     reformat_tweet = original_tweet.replace(original_tweet[front + 1:back], word)
@@ -103,7 +113,22 @@ def flatten(nested_lst: List[List]) -> List:
     return result
 
 
+def setup_datafile() -> None:
+    if os.path.exists(CSV_PATH):
+        os.remove(CSV_PATH)
+    # header of csv
+    header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis', 'Comments', 'Likes', 'Retweets',
+                  'Image link', 'Tweet URL']
+    with open(CSV_PATH, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+
+
 def run(num_of_days: int, word: str, limit: int) -> List:
+    if not os.path.exists(DATA_DIR):
+        os.mkdir(DATA_DIR)
+    setup_datafile()
+
     workload_assignment = split_task(num_of_days)
     input_dictionaries = generate_input_dictionaries(workload_assignment, word, limit)
 
@@ -111,18 +136,19 @@ def run(num_of_days: int, word: str, limit: int) -> List:
     product_queue = queue.Queue()
     result_queue = queue.Queue()
     print(input_dictionaries)
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        for input_dictionary in input_dictionaries:
-            executor.submit(producer, product_queue, input_dictionary)
-            future = executor.submit(consumer, product_queue, result_queue, word)
-            futures.append(future)
+    producer(product_queue, input_dict=input_dictionaries[0])
+    consumer(product_queue, result_queue, word)
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     for input_dictionary in input_dictionaries:
+    #         executor.submit(producer, product_queue, input_dictionary)
+    #         future = executor.submit(consumer, product_queue, result_queue, word)
     evaluation_results = list(result_queue.queue)
     return evaluation_results
 
 
 if __name__ == '__main__':
     start = time.time()
+
     # Silent debug info
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)

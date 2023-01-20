@@ -1,17 +1,16 @@
 import csv
 import os
 import datetime
-import argparse
 from time import sleep
 import random
-import pandas as pd
-from queue import Queue
-from .utils import init_driver, get_last_date_from_csv, log_search_page, keep_scroling, dowload_images
+import threading
+from .utils import init_driver, log_search_page, keep_scroling, dowload_images
 
+DATA_DIR = "./outputs/"
+CSV_PATH = "./outputs/data.csv"
 
 def scrape(queue, since, until=None, words=None, to_account=None, from_account=None, mention_account=None, interval=5, lang=None,
-          headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None,
-          show_images=False, save_images=False, save_dir="outputs", filter_replies=False, proximity=False, 
+          headless=True, limit=float("inf"), display_type="Top", proxy=None, hashtag=None, save_images=False, filter_replies=False, proximity=False,
           geocode=None, minreplies=None, minlikes=None, minretweets=None):
     """
     scrape data from twitter using requests, starting from <since> until <until>. The program make a search between each <since> and <until_local>
@@ -22,10 +21,8 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
     save a csv file containing all tweets scraped with the associated features.
     """
 
-    # ------------------------- Variables : 
+    # ------------------------- Variables :
 
-    # list that contains all data 
-    data = []
     # unique tweet ids
     tweet_ids = set()
     # start scraping from <since> until <until>
@@ -37,12 +34,8 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
     # set refresh at 0. we refresh the page for each <interval> of time.
     refresh = 0
 
-    # show images during scraping (for saving purpose)
-    if save_images == True:
-        show_images = True
     # initiate the driver
-    driver = init_driver(headless, proxy, show_images)
-
+    driver = init_driver(headless, proxy)
     # log search page for a specific <interval> of time and keep scrolling unltil scrolling stops or reach the <until>
     while until_local <= datetime.datetime.strptime(until, '%Y-%m-%d'):
         # number of scrolls
@@ -74,8 +67,8 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
         # sleep
         sleep(random.uniform(0.5, 1.5))
         # start scrolling and get tweets
-        driver, data, queue, tweet_ids, scrolling, tweet_parsed, scroll, last_position = \
-            keep_scroling(driver, data, queue, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position)
+        driver, queue, tweet_ids, scrolling, tweet_parsed, scroll, last_position = \
+            keep_scroling(driver, queue, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position)
 
         # keep updating <start date> and <end date> for every search
         if type(since) == str:
@@ -87,86 +80,6 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
         else:
             until_local = until_local + datetime.timedelta(days=interval)
 
-    # save images
-    if save_images==True:
-        print("Saving images ...")
-        save_images_dir = "images"
-        if not os.path.exists(save_images_dir):
-            os.makedirs(save_images_dir)
-
-        dowload_images(data["Image link"], save_images_dir)
-
     queue.put(None)
     # close the web driver
     driver.close()
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Scrape tweets.')
-
-    parser.add_argument('--words', type=str,
-                        help='Queries. they should be devided by "//" : Cat//Dog.', default=None)
-    parser.add_argument('--from_account', type=str,
-                        help='Tweets from this account (example : @Tesla).', default=None)
-    parser.add_argument('--to_account', type=str,
-                        help='Tweets replyed to this account (example : @Tesla).', default=None)
-    parser.add_argument('--mention_account', type=str,
-                        help='Tweets mention a account (example : @Tesla).', default=None)
-    parser.add_argument('--hashtag', type=str, 
-                        help='Hashtag', default=None) 
-    parser.add_argument('--until', type=str,
-                        help='Max date for search query. example : %%Y-%%m-%%d.', required=True)
-    parser.add_argument('--since', type=str,
-                        help='Start date for search query. example : %%Y-%%m-%%d.', required=True)
-    parser.add_argument('--interval', type=int,
-                        help='Interval days between each start date and end date for search queries. example : 5.',
-                        default=1)
-    parser.add_argument('--lang', type=str,
-                        help='Tweets language. example : "en" for english and "fr" for french.', default=None)
-    parser.add_argument('--headless', type=bool,
-                        help='Headless webdrives or not. True or False', default=False)
-    parser.add_argument('--limit', type=int,
-                        help='Limit tweets per <interval>', default=float("inf"))
-    parser.add_argument('--display_type', type=str,
-                        help='Display type of twitter page : Latest or Top', default="Top")
-    parser.add_argument('--resume', type=bool,
-                        help='Resume the last scraping. specify the csv file path.', default=False)
-    parser.add_argument('--proxy', type=str,
-                        help='Proxy server', default=None)
-    parser.add_argument('--proximity', type=bool,
-                        help='Proximity', default=False)                        
-    parser.add_argument('--geocode', type=str,
-                        help='Geographical location coordinates to center the search, radius. No compatible with proximity', default=None)
-    parser.add_argument('--minreplies', type=int,
-                        help='Min. number of replies to the tweet', default=None)
-    parser.add_argument('--minlikes', type=int,
-                        help='Min. number of likes to the tweet', default=None)
-    parser.add_argument('--minretweets', type=int,
-                        help='Min. number of retweets to the tweet', default=None)
-                            
-
-    args = parser.parse_args()
-
-    words = args.words
-    until = args.until
-    since = args.since
-    interval = args.interval
-    lang = args.lang
-    headless = args.headless
-    limit = args.limit
-    display_type = args.display_type
-    from_account = args.from_account
-    to_account = args.to_account
-    mention_account = args.mention_account
-    hashtag = args.hashtag
-    resume = args.resume
-    proxy = args.proxy
-    proximity = args.proximity
-    geocode = args.geocode
-    minreplies = args.minreplies
-    minlikes = args.minlikes
-    minretweets = args.minlikes
-
-    data = scrape(since=since, until=until, words=words, to_account=to_account, from_account=from_account, mention_account=mention_account,
-                hashtag=hashtag, interval=interval, lang=lang, headless=headless, limit=limit,
-                display_type=display_type, resume=resume, proxy=proxy, filter_replies=False, proximity=proximity,
-                geocode=geocode, minreplies=minreplies, minlikes=minlikes, minretweets=minretweets)
