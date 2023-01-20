@@ -112,8 +112,8 @@ def get_data(card, save_images=False, save_dir=None):
     except:
         return
 
-    tweet = (
-        username, handle, postdate, text, embedded, emojis, reply_cnt, retweet_cnt, like_cnt, image_links, tweet_url)
+    tweet = [
+        username, handle, postdate, text, embedded, emojis, reply_cnt, retweet_cnt, like_cnt, image_links, tweet_url]
     return tweet
 
 
@@ -126,6 +126,7 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None):
     chromedriver_path = chromedriver_autoinstaller.install()
     # options
     options = Options()
+    options.add_argument("--lang=en")
     if headless is True:
         print("Scraping on headless mode.")
         options.add_argument('--disable-gpu')
@@ -136,7 +137,7 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None):
     if proxy is not None:
         options.add_argument('--proxy-server=%s' % proxy)
         print("using proxy : ", proxy)
-    if show_images == False:
+    if show_images is False:
         prefs = {"profile.managed_default_content_settings.images": 2}
         options.add_experimental_option("prefs", prefs)
     if option is not None:
@@ -257,28 +258,19 @@ def log_in(driver, env, timeout=20, wait=4):
     sleep(random.uniform(wait, wait + 1))
 
 
-def keep_scroling(driver, data, queue, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position,
-                  save_images=False):
+def keep_scroling(driver, queue, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position):
     """ scrolling function for tweets crawling"""
-
-    save_images_dir = "/images"
-
-    if save_images == True:
-        if not os.path.exists(save_images_dir):
-            os.mkdir(save_images_dir)
-
     while scrolling and tweet_parsed < limit:
         sleep(random.uniform(0.5, 1.5))
         # get the card of tweets
         page_cards = driver.find_elements_by_xpath('//article[@data-testid="tweet"]')  # changed div by article
         for card in page_cards:
-            tweet = get_data(card, save_images, save_images_dir)
+            tweet = get_data(card)
             if tweet:
                 # check if the tweet is unique
                 tweet_id = ''.join(tweet[:-2])
                 if tweet_id not in tweet_ids:
                     tweet_ids.add(tweet_id)
-                    data.append(tweet)
                     queue.put(tweet)
                     last_date = str(tweet[2])
                     print("Tweet made at: " + str(last_date) + " is found.")
@@ -304,7 +296,7 @@ def keep_scroling(driver, data, queue, tweet_ids, scrolling, tweet_parsed, limit
             else:
                 last_position = curr_position
                 break
-    return driver, data, queue, tweet_ids, scrolling, tweet_parsed, scroll, last_position
+    return driver, queue, tweet_ids, scrolling, tweet_parsed, scroll, last_position
 
 
 def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit=float('inf')):
