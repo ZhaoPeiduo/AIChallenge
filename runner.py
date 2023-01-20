@@ -73,7 +73,7 @@ def reformat_input(original_tweet: str, word: str) -> str:
     back = index
     while original_tweet[front] != " " and front > -1:
         front -= 1
-    while original_tweet[back] != " " and back < len(original_tweet) - 1:
+    while original_tweet[back] != " " and back < len(original_tweet):
         back += 1
     # Shift front pointer to retain the space
     reformat_tweet = original_tweet.replace(original_tweet[front + 1:back], word)
@@ -119,7 +119,7 @@ def setup_datafile() -> None:
     # header of csv
     header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis', 'Comments', 'Likes', 'Retweets',
                   'Image link', 'Tweet URL']
-    with open(CSV_PATH, 'w') as f:
+    with open(CSV_PATH, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(header)
 
@@ -136,22 +136,22 @@ def run(num_of_days: int, word: str, limit: int) -> List:
     product_queue = queue.Queue()
     result_queue = queue.Queue()
     print(input_dictionaries)
-    producer(product_queue, input_dict=input_dictionaries[0])
-    consumer(product_queue, result_queue, word)
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     for input_dictionary in input_dictionaries:
-    #         executor.submit(producer, product_queue, input_dictionary)
-    #         future = executor.submit(consumer, product_queue, result_queue, word)
+    # producer(product_queue, input_dict=input_dictionaries[0])
+    # consumer(product_queue, result_queue, word)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for input_dictionary in input_dictionaries:
+            executor.submit(producer, product_queue, input_dictionary)
+            future = executor.submit(consumer, product_queue, result_queue, word)
     evaluation_results = list(result_queue.queue)
     return evaluation_results
 
 
 if __name__ == '__main__':
     start = time.time()
-
     # Silent debug info
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
-    print(run(5, "covid", 40))
+    result = run(5, "covid", 40)
+    print(result, len(result))
     end = time.time()
     print(f"Total time taken for scraping 5 days: {end - start}")

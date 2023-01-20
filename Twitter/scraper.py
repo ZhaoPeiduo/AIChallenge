@@ -9,7 +9,7 @@ columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', '
 DEFAULT_SETTING = {
     "from_account": None,
     "interval": 1,
-    "headless": False,
+    "headless": True,
     "display_type": "top",
     "lang": "en",
     "filter_replies": True,
