@@ -4,3 +4,4 @@
 
 To install requirements for the external packages used (sgnlp and scweet-modified_ver), run:
 <pre><code>pip install -r requirements.txt</code></pre>
+Note: Chrome / Firefox must be installed in the system as well.
