@@ -23,7 +23,8 @@ def search_by_words(product_queue, input_dict):
         "words": [input_dict["words"]],
         "since": input_dict["since"],
         "until": input_dict["until"],
-        "limit": input_dict["limit"]
+        "limit": input_dict["limit"],
+        "driver_type": "firefox"
     }
     customised_setting.update(DEFAULT_SETTING)
     scweet.scrape(**customised_setting)
