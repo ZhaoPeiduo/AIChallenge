@@ -6,4 +6,3 @@ geckodriver-autoinstaller
 urllib3
 pandas
 certifi
-requests
