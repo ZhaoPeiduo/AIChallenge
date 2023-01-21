@@ -2,7 +2,6 @@ sgnlp
 selenium==4.2.0
 python-dotenv
 chromedriver-autoinstaller
-geckodriver-autoinstaller
 urllib3
 pandas
 certifi
