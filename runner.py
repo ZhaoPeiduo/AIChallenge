@@ -138,12 +138,12 @@ class Runner:
         workload_assignment = self.split_task(self._num_of_days)
         input_dictionaries = self.generate_input_dictionaries(workload_assignment, self._word, self._limit)
 
-        futures = []
         product_queue = queue.Queue()
         result_queue = queue.Queue()
         print(input_dictionaries)
-        # producer(product_queue, input_dict=input_dictionaries[0])
-        # consumer(product_queue, result_queue, word)
+        # self.producer(product_queue, input_dict=input_dictionaries[0])
+        # print(len(product_queue.queue))
+        # self.consumer(product_queue, result_queue, self._word)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for input_dictionary in input_dictionaries:
                 executor.submit(self.producer, product_queue, input_dictionary)

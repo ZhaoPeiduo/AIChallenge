@@ -4,6 +4,7 @@ import re
 from time import sleep
 import random
 import chromedriver_autoinstaller
+import geckodriver_autoinstaller
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -117,13 +118,12 @@ def get_data(card, save_images=False, save_dir=None):
     return tweet
 
 
-def init_driver(headless=True, proxy=None, show_images=False, option=None):
+def init_driver(headless=True, proxy=None, show_images=False, option=None, driver_type="chrome"):
     """ initiate a chromedriver instance 
         --option : other option to add (str)
     """
-
+    assert driver_type == "chrome" or "firefox"
     # create instance of web driver
-    chromedriver_path = chromedriver_autoinstaller.install()
     # options
     options = Options()
     options.add_argument("--lang=en")
@@ -142,7 +142,13 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None):
         options.add_experimental_option("prefs", prefs)
     if option is not None:
         options.add_argument(option)
-    driver = webdriver.Chrome(options=options, executable_path=chromedriver_path)
+    if driver_type == "chrome":
+        driver_path = chromedriver_autoinstaller.install()
+        driver = webdriver.Chrome(options=options, executable_path=driver_path)
+    else:
+        driver_path = geckodriver_autoinstaller.install()
+        driver = webdriver.Firefox(options=options, executable_path=driver_path)
+
     driver.set_page_load_timeout(100)
     return driver
 

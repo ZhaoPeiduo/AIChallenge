@@ -11,7 +11,7 @@ CSV_PATH = "./outputs/data.csv"
 
 def scrape(queue, since, until=None, words=None, to_account=None, from_account=None, mention_account=None, interval=5, lang=None,
           headless=True, limit=float("inf"), display_type="Top", proxy=None, hashtag=None, save_images=False, filter_replies=False, proximity=False,
-          geocode=None, minreplies=None, minlikes=None, minretweets=None):
+          geocode=None, minreplies=None, minlikes=None, minretweets=None, driver_type="chrome"):
     """
     scrape data from twitter using requests, starting from <since> until <until>. The program make a search between each <since> and <until_local>
     until it reaches the <until> date if it's given, else it stops at the actual date.
@@ -35,7 +35,7 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
     refresh = 0
 
     # initiate the driver
-    driver = init_driver(headless, proxy)
+    driver = init_driver(headless, proxy, driver_type)
     # log search page for a specific <interval> of time and keep scrolling unltil scrolling stops or reach the <until>
     while until_local <= datetime.datetime.strptime(until, '%Y-%m-%d'):
         # number of scrolls
