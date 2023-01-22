@@ -35,7 +35,7 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
     refresh = 0
 
     # initiate the driver
-    driver = init_driver(headless, proxy, driver_type)
+    driver = init_driver(headless, proxy, driver_type=driver_type)
     # log search page for a specific <interval> of time and keep scrolling unltil scrolling stops or reach the <until>
     while until_local <= datetime.datetime.strptime(until, '%Y-%m-%d'):
         # number of scrolls

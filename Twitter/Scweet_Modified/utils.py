@@ -3,21 +3,20 @@ import os
 import re
 from time import sleep
 import random
-import chromedriver_autoinstaller
-import geckodriver_autoinstaller
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.safari.service import Service as SafariService
+from webdriver_manager import chrome, firefox
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.safari.options import Options as SafariOptions
+
 import datetime
 import pandas as pd
 import platform
 from selenium.webdriver.common.keys import Keys
-# import pathlib
-
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from . import const
 import urllib
 
 from .const import get_username, get_password, get_email
@@ -125,7 +124,14 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None, drive
     assert driver_type == "chrome" or "firefox"
     # create instance of web driver
     # options
-    options = Options()
+    if driver_type == "chrome":
+        options = ChromeOptions()
+    elif driver_type == "firefox":
+        options = FirefoxOptions()
+    else:
+        # safari for macos only
+        assert platform.system() == "Darwin"
+        options = SafariOptions()
     options.add_argument("--lang=en")
     if headless is True:
         print("Scraping on headless mode.")
@@ -137,17 +143,17 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None, drive
     if proxy is not None:
         options.add_argument('--proxy-server=%s' % proxy)
         print("using proxy : ", proxy)
-    if show_images is False:
-        prefs = {"profile.managed_default_content_settings.images": 2}
-        options.add_experimental_option("prefs", prefs)
     if option is not None:
         options.add_argument(option)
     if driver_type == "chrome":
-        driver_path = chromedriver_autoinstaller.install()
-        driver = webdriver.Chrome(options=options, executable_path=driver_path)
+        service = ChromeService(chrome.ChromeDriverManager().install())
+        driver = webdriver.Chrome(options=options, service=service)
+    elif driver_type == "firefox":
+        service = FirefoxService(firefox.GeckoDriverManager().install())
+        driver = webdriver.Firefox(options=options, service=service)
     else:
-        driver_path = geckodriver_autoinstaller.install()
-        driver = webdriver.Firefox(options=options, executable_path=driver_path)
+        service = SafariService()
+        driver = webdriver.Safari(options=options, service=service)
 
     driver.set_page_load_timeout(100)
     return driver

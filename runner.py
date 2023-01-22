@@ -140,7 +140,7 @@ class Runner:
 
         product_queue = queue.Queue()
         result_queue = queue.Queue()
-        print(input_dictionaries)
+        # print(input_dictionaries)
         # self.producer(product_queue, input_dict=input_dictionaries[0])
         # print(len(product_queue.queue))
         # self.consumer(product_queue, result_queue, self._word)
