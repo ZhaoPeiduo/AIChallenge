@@ -1,4 +1,4 @@
-from dash import Dash, html, Output, Input, dcc, ctx
+from dash import Dash, html, Output, Input, dcc, State
 import runner
 import pandas as pd
 import plotly.express as px
@@ -29,13 +29,12 @@ class SampleApp:
         app = Dash(__name__)
 
         @app.callback(Output('graph', 'figure'),
-                      [Input('num_of_days', 'value')],
-                      [Input('word', 'value')],
-                      # Input('submit_button', 'n_clicks'),
+                      [Input('submit_button', 'n_clicks')],
+                      [State('num_of_days', 'value'), State('word', 'value')],
                       )
-        def call_generate(num_of_days, word, limit=40, driver_type="chrome"):
-            # if "submit_button" == ctx.triggered_id:
-            return self.generate_chart(num_of_days, word, limit, driver_type)
+        def call_generate(n_clicks, num_of_days, word, limit=40, driver_type="chrome"):
+            if n_clicks is not None:
+                return self.generate_chart(num_of_days, word, limit, driver_type)
 
         app.layout = html.Div([
             html.H4('Sentiment Analysis'),
@@ -51,12 +50,12 @@ class SampleApp:
             dcc.Input(id="word",
                       value="Input search keyword here...",
                       type="text"),
-            # html.Button('Button 1', id='submit_button', n_clicks=0)
+            html.Button('Submit', id='submit_button', n_clicks=1)
         ])
 
         app.run_server()
 
 
 if __name__ == '__main__':
-    app = SampleApp("covid")
-    app.run_app()
+    sample_app = SampleApp("covid")
+    sample_app.run_app()
