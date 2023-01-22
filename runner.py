@@ -21,10 +21,11 @@ TEXT_POSITION = 4  # Refer to the column legend above
 
 
 class Runner:
-    def __init__(self, num_of_days: int, word: str, limit: int):
+    def __init__(self, num_of_days: int, word: str, limit: int, driver_type: str):
         self._num_of_days = num_of_days
         self._word = word
         self._limit = limit
+        self._driver_type = driver_type
 
     def __call__(self):
         # Silent debug info
@@ -32,9 +33,9 @@ class Runner:
         logging.getLogger("selenium").setLevel(logging.WARNING)
         return self.run()
 
-    def producer(self, product_queue: queue.Queue, input_dict: Dict) -> None:
+    def producer(self, product_queue: queue.Queue, input_dict: Dict, driver_type: str) -> None:
         print("producer called!", flush=True)
-        scraper.search_by_words(product_queue, input_dict)
+        scraper.search_by_words(product_queue, input_dict, driver_type)
 
     def consumer(self, product_queue: queue.Queue, result_queue: queue.Queue, word: str) -> None:
         print("consumer called!", flush=True)
@@ -146,9 +147,9 @@ class Runner:
         # self.consumer(product_queue, result_queue, self._word)
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for input_dictionary in input_dictionaries:
-                executor.submit(self.producer, product_queue, input_dictionary)
-                future = executor.submit(self.consumer, product_queue, result_queue, self._word)
-        evaluation_results = list(result_queue.queue)
+                executor.submit(self.producer, product_queue, input_dictionary, self._driver_type)
+                executor.submit(self.consumer, product_queue, result_queue, self._word)
+        evaluation_results = self.flatten(list(result_queue.queue))
         return evaluation_results
 
 

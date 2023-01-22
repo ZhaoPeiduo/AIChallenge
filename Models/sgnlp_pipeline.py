@@ -1,4 +1,6 @@
 import os
+from typing import List, Tuple
+
 import requests
 import concurrent.futures
 
@@ -17,12 +19,12 @@ CPU_COUNT = os.cpu_count()
 MODEL_ARCHIVE_DIR = "./Models/ModelArchive/"
 
 
-def download_from_url(url, filename, save_path=MODEL_ARCHIVE_DIR):
+def download_from_url(url: str, filename: str, save_path: str = MODEL_ARCHIVE_DIR) -> None:
     r = requests.get(url, allow_redirects=True)
     open(os.path.join(save_path, filename), 'wb').write(r.content)
 
 
-def download_from_urls(urls, filenames):
+def download_from_urls(urls: Tuple[str], filenames: List[str]) -> None:
     try:
         assert len(urls) == len(filenames)
         num_workers = CPU_COUNT if CPU_COUNT < len(urls) else len(urls)
@@ -32,7 +34,7 @@ def download_from_urls(urls, filenames):
         print("number of urls and their corresponding filename does not match.")
 
 
-def download_models_and_configs(file_names):
+def download_models_and_configs(file_names: Tuple[str]) -> None:
     download_tokenizer_files(
         "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn_tokenizer/",
         os.path.join(MODEL_ARCHIVE_DIR, "senticgcn_tokenizer"))
@@ -85,7 +87,7 @@ def initialize_model():
     return senticgcn_model, preprocessor, postprocessor
 
 
-def run_model(inputs):
+def run_model(inputs: List[dict]) -> List[dict]:
     senticgcn_model, preprocessor, postprocessor = initialize_model()
     processed_inputs, processed_indices = preprocessor(inputs)
     raw_outputs = senticgcn_model(processed_indices)
