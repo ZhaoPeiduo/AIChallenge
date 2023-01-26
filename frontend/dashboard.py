@@ -18,6 +18,7 @@ SIDEBAR_STYLE = {
     "background-color": "#f8f9fa",
 }
 
+
 MAIN_STYLE = {
     "padding": "2rem 1rem"
 }
@@ -65,9 +66,30 @@ sidebar = html.Div(
 
 contents = html.Div([
     html.H4("Place for graphs"),
+    dbc.Row([
+        dbc.Col([
+            html.Div([
+                html.H5("graph - 1")
+            ], style = {
+                 "background-color": "#f8f8fa"
+            })
+        ], width = 8),
+        dbc.Col([
+            html.Div([
+                html.H5("graph - 2")
+            ], style = {
+                 "background-color": "#f8f8fa"
+            })
+        ], width = 4),
+    ]),
     html.Div(id='main-content', children = [
             ]),
 ], style = MAIN_STYLE)
+
+
+####################
+# APP LAYOUT       #
+####################
 
 app.layout = dbc.Row([
     dbc.Col(className='sidebar', children=[
