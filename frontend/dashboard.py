@@ -3,8 +3,8 @@ from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
-import datetime
-
+from datetime import date
+import datetime as dt
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 
@@ -33,30 +33,28 @@ sidebar = html.Div(
             html.Br(),
             dcc.Input(id='search-bar', placeholder='Search...'),
         ]),
-
         html.Br(),
+        html.Br(),
+        html.Br(),
+        html.H4("Please choose a date range"),
+
         html.Br(),
         html.Br(),
 
         html.Div([
-            html.Label('Start Date'),
-            dcc.DatePickerSingle(
-                id='start-date',
-                date=datetime.datetime.now()
+            html.H5('Date'),
+            dcc.DatePickerRange(
+                id = "calendar",
+                min_date_allowed=date.today()-dt.timedelta(days = 14),
+                #start_date_placeholder_text="Start Period",
+                #end_date_placeholder_text="End Period",
+                calendar_orientation='vertical',
+                max_date_allowed=date.today(),
+                initial_visible_month=date.today()-dt.timedelta(days = 7),
+                start_date = date.today()-dt.timedelta(days = 7),
+                end_date = date.today()
             ),
         ]),
-
-        html.Br(),
-        html.Br(),
-        html.Br(),
-
-        html.Div([
-            html.Label('End Date'),
-            dcc.DatePickerSingle(
-                id='end-date',
-                date=datetime.datetime.now()
-            )
-        ])
     ],
     style = SIDEBAR_STYLE
 )
@@ -101,18 +99,24 @@ app.layout = dbc.Row([
         ], width = 9)
 ])
 
+'''
 @app.callback(
-    Output(component_id='main-content', component_property='children'),
-    [Input(component_id='search-bar', component_property='value'),
-     Input(component_id='start-date', component_property='date'),
-     Input(component_id='end-date', component_property='date')]
+    [Output(component_id='calendar', component_property='end_date'),
+     Output(component_id='warning', component_property='children')],
+    [Input(component_id='calendar', component_property='start_date'),
+     Input(component_id='range-picker', component_property='value')]
 )
-def update_main_content(search_bar, start_date, end_date):
-    return html.Div([
-        html.H4('Search Results for {}'.format(search_bar)),
-        html.P('Start Date: {}'.format(start_date)),
-        html.P('End Date: {}'.format(end_date))
-    ])
+def update_end_date(start_date, value):
+    out_of_range = False
+    if value == "3 Days":
+        if start_date + dt.timedelta(days = 3) > date.today():
+            output1 = date.today()
+    
+    elif value == "1 Week":
+    
+    elif value == "2 Weeks":
+    
+'''
 
 if __name__ == '__main__':
     app.run_server(debug=True)
