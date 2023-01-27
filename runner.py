@@ -69,6 +69,7 @@ class Runner:
             try:
                 result = sgnlp_pipeline.run_model([input_dict])
                 tweet[TEXT_POSITION] = tweet_text
+                tweet.append(result[0]["labels"])
                 csv_writer_lock = threading.Lock()
                 with csv_writer_lock:
                     with open(CSV_PATH, 'a', newline='', encoding='utf-8') as f:
@@ -125,8 +126,7 @@ class Runner:
             os.remove(CSV_PATH)
         # header of csv
         header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis', 'Comments', 'Likes',
-                  'Retweets',
-                  'Image link', 'Tweet URL']
+                  'Retweets', 'Image link', 'Tweet URL', 'scores']
         with open(CSV_PATH, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(header)
@@ -141,8 +141,8 @@ class Runner:
 
         product_queue = queue.Queue()
         result_queue = queue.Queue()
-        # print(input_dictionaries)
-        # self.producer(product_queue, input_dict=input_dictionaries[0])
+        print(input_dictionaries)
+        # self.producer(product_queue, input_dict=input_dictionaries[0], driver_type="chrome")
         # print(len(product_queue.queue))
         # self.consumer(product_queue, result_queue, self._word)
         with concurrent.futures.ThreadPoolExecutor() as executor:

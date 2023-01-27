@@ -5,3 +5,7 @@ webdriver-manager
 urllib3
 pandas
 certifi
+dash
+requests
+plotly
+dash-bootstrap-components
