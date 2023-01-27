@@ -25,7 +25,7 @@ df = df.sort_values(by='date', ascending=False)
 def score_by_day():
     daily_avg_score = pd.DataFrame(df.groupby(['date'])['score'].mean()).reset_index()
     fig = px.area(daily_avg_score, x='date', y='score', template = 'plotly_white')
-    fig.update_layout(title='Score by Date', xaxis_title='Date', yaxis_title='Score')
+    fig.update_layout(xaxis_title='Date', yaxis_title='Score')
     fig.update_layout(paper_bgcolor='rgb(250,250,250)')
     fig.update_traces(line=dict(color='#8B5E3C'))
     fig.update_layout(
@@ -36,6 +36,26 @@ def score_by_day():
         )
     )
     return fig
+
+def piechart():
+    df_byscore = pd.DataFrame(df.groupby("score").size()).reset_index()
+    df_byscore.columns = ['score', 'count']
+    pie_chart = px.pie(df_byscore, values = 'count', names = "score", hole = .3, 
+                   color_discrete_sequence=['#8B6B62','#9E836F','#8F7C6B'],
+                  labels = {"0":'neutral', 
+                            "1":'positive', 
+                            "-1":'negative'}, template="plotly_white")
+    pie_chart.update_layout(paper_bgcolor='rgb(250,250,250)')
+    pie_chart.update_layout(
+        font=dict(
+            family="Merriweather", # specify font family
+            size=18,              # specify font size
+            color="#7f7f7f"       # specify font color
+        ),
+        legend= dict(orientation = "h", x = 0.1, y = 0)
+    )
+
+    return pie_chart
 
 
 
@@ -100,7 +120,8 @@ contents = html.Div([
     dbc.Row([
         dbc.Col([
             html.Div([
-                #html.H5("graph - 1"),
+                html.Br(),
+                html.H5("Average Score by Date", style = {'textAlign': 'center'}),
                 dcc.Graph(id = "score by day", figure = score_by_day())
             ], style = {
                  "background-color": "#f8f8fa"
@@ -108,7 +129,9 @@ contents = html.Div([
         ], width = 7),
         dbc.Col([
             html.Div([
-                html.H5("graph - 2")
+                html.Br(),
+                html.H5("Proportion of Scores", style = {'textAlign': 'center'}),
+                dcc.Graph(id = "piechart", figure = piechart())
             ], style = {
                  "background-color": "#f8f8fa"
             })
