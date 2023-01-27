@@ -28,7 +28,6 @@ def score_by_day():
     fig.update_layout(title='Score by Date', xaxis_title='Date', yaxis_title='Score')
     fig.update_layout(paper_bgcolor='rgb(250,250,250)')
     fig.update_traces(line=dict(color='#8B5E3C'))
-    fig.update_layout(font=dict(color='rgb(0,0,0)'))
     fig.update_layout(
         font=dict(
             family="Merriweather", # specify font family
