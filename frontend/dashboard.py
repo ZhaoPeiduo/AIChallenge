@@ -92,11 +92,11 @@ contents = html.Div([
 app.layout = dbc.Row([
     dbc.Col(className='sidebar', children=[
         sidebar
-    ], width = 3),
+    ], width = 4),
 
     dbc.Col(children=[
             contents
-        ], width = 9)
+        ], width = 8)
 ])
 
 '''
