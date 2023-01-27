@@ -5,7 +5,41 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from datetime import date
 import datetime as dt
+import pandas as pd
+import plotly.express as px
+
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+
+####################
+# DATA IMPORT      #
+####################
+df = pd.read_csv('randomdata.csv')
+df["date"] = pd.to_datetime(df["date"])
+df = df.sort_values(by='date', ascending=False)
+
+####################
+# Graph functions  #
+####################
+
+def score_by_day():
+    daily_avg_score = pd.DataFrame(df.groupby(['date'])['score'].mean()).reset_index()
+    fig = px.area(daily_avg_score, x='date', y='score', template = 'plotly_white')
+    fig.update_layout(title='Score by Date', xaxis_title='Date', yaxis_title='Score')
+    fig.update_layout(paper_bgcolor='rgb(250,250,250)')
+    fig.update_traces(line=dict(color='#8B5E3C'))
+    fig.update_layout(font=dict(color='rgb(0,0,0)'))
+    fig.update_layout(
+        font=dict(
+            family="Merriweather", # specify font family
+            size=18,              # specify font size
+            color="#7f7f7f"       # specify font color
+        )
+    )
+    return fig
+
+
+
 
 
 SIDEBAR_STYLE = {
@@ -13,15 +47,15 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "24rem",
-    "padding": "2rem 1rem",
+    #"width": "20rem",
+    "padding": "2rem",
     "background-color": "#f8f9fa",
 }
 
 
 MAIN_STYLE = {
-    "padding": "2rem 1rem"
-}
+    "padding": "2rem",
+    }
 
 #####################
 # Side bar          #
@@ -29,20 +63,20 @@ MAIN_STYLE = {
 sidebar = html.Div(
     [
         html.Div(children=[
-            html.H4('Search Keyword'),
+            html.H5('Search Keyword'),
             html.Br(),
             dcc.Input(id='search-bar', placeholder='Search...'),
         ]),
         html.Br(),
         html.Br(),
         html.Br(),
-        html.H4("Please choose a date range"),
+        html.H5("Please choose a date range"),
 
         html.Br(),
         html.Br(),
 
         html.Div([
-            html.H5('Date'),
+            html.H6('Date'),
             dcc.DatePickerRange(
                 id = "calendar",
                 min_date_allowed=date.today()-dt.timedelta(days = 14),
@@ -67,18 +101,19 @@ contents = html.Div([
     dbc.Row([
         dbc.Col([
             html.Div([
-                html.H5("graph - 1")
+                #html.H5("graph - 1"),
+                dcc.Graph(id = "score by day", figure = score_by_day())
             ], style = {
                  "background-color": "#f8f8fa"
             })
-        ], width = 8),
+        ], width = 7),
         dbc.Col([
             html.Div([
                 html.H5("graph - 2")
             ], style = {
                  "background-color": "#f8f8fa"
             })
-        ], width = 4),
+        ]),
     ]),
     html.Div(id='main-content', children = [
             ]),
@@ -90,9 +125,9 @@ contents = html.Div([
 ####################
 
 app.layout = dbc.Row([
-    dbc.Col(className='sidebar', children=[
+    dbc.Col(children=[
         sidebar
-    ], width = 4),
+    ]),
 
     dbc.Col(children=[
             contents
