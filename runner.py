@@ -51,14 +51,16 @@ class Runner:
             if tweet_text.find("https") != -1:
                 tweet_text = tweet_text[:tweet_text.find("https")]
 
-            # Remove extra lines:
+            # Get line with the keyword token
             if tweet_text.find("\n") != -1:
-                tweet_text = tweet_text[:tweet_text.find("\n")]
+                tweet_text = tweet_text.replace("\n", " ")
 
             # If the keyword is in extra lines or link, continue.
             # Scraper allows a tweet to pass to this stage as long as the tweet contains the word.
             # Change to the exact word for the model to work
             if word not in tweet_text.lower():
+                #  and word.replace(" ", "") not in tweet_text.lower()
+                print(tweet_text)
                 continue
             elif tweet_text.find(word) == -1:
                 print(f"{tweet_text} to be modified", flush=True)
@@ -142,7 +144,7 @@ class Runner:
         product_queue = queue.Queue()
         result_queue = queue.Queue()
         print(input_dictionaries)
-        # self.producer(product_queue, input_dict=input_dictionaries[0], driver_type="chrome")
+        # self.producer(product_queue, input_dict=input_dictionaries[2], driver_type="chrome")
         # print(len(product_queue.queue))
         # self.consumer(product_queue, result_queue, self._word)
         with concurrent.futures.ThreadPoolExecutor() as executor:
