@@ -121,7 +121,7 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None, drive
     """ initiate a chromedriver instance 
         --option : other option to add (str)
     """
-    assert driver_type == "chrome" or "firefox"
+    assert driver_type == "chrome" or "firefox" or "safari"
     # create instance of web driver
     # options
     if driver_type == "chrome":
