@@ -38,6 +38,8 @@ class Runner:
 
     def consumer(self, product_queue: queue.Queue, result_queue: queue.Queue, word: str) -> None:
         print("consumer called!", flush=True)
+        # Standardise input word to lower case
+        word = word.lower()
         while True:
             tweet = product_queue.get()
             if tweet is None:
