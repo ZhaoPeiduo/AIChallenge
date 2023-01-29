@@ -13,10 +13,13 @@ import logging
 
 '''
 columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis',
-   'Comments', 'Likes', 'Retweets','Image link', 'Tweet URL']
+   'Comments', 'Likes', 'Retweets','Image link', 'Tweet URL', 'score']
 '''
 
 TEXT_POSITION = 4  # Refer to the column legend above
+COMMENTS_POSITION = 6
+LIKES_POSITION = 7
+RETWEETS_POSITION = 8
 
 
 class Runner:
@@ -33,11 +36,11 @@ class Runner:
         return self.run()
 
     def producer(self, product_queue: queue.Queue, input_dict: Dict, driver_type: str) -> None:
-        print("producer called!", flush=True)
+        # print("producer called!", flush=True)
         scraper.search_by_words(product_queue, input_dict, driver_type)
 
     def consumer(self, product_queue: queue.Queue, result_queue: queue.Queue, word: str) -> None:
-        print("consumer called!", flush=True)
+        # print("consumer called!", flush=True)
         # Standardise input word to lower case
         word = word.lower()
         while True:
@@ -64,15 +67,22 @@ class Runner:
                 print(tweet_text)
                 continue
             elif tweet_text.find(word) == -1:
-                print(f"{tweet_text} to be modified", flush=True)
+                # print(f"{tweet_text} to be modified", flush=True)
                 tweet_text = self.reformat_input(tweet_text, word)
-                print(f"{tweet_text} after modified", flush=True)
+                # print(f"{tweet_text} after modified", flush=True)
             input_dict["sentence"] = tweet_text
 
             try:
                 result = sgnlp_pipeline.run_model([input_dict])
                 tweet[TEXT_POSITION] = tweet_text
-                tweet.append(result[0]["labels"])
+                score_list = result[0]["labels"]
+                mode_score = max(set(score_list), key=score_list.count)
+                tweet.append(mode_score)
+                for pos in (LIKES_POSITION, RETWEETS_POSITION, COMMENTS_POSITION):
+                    if tweet[pos] == '':
+                        tweet[pos] = 0
+                    tweet[pos] = int(tweet[pos])
+                print(tweet)
                 result_queue.put(tweet)
             except RuntimeError:
                 print(f"{tweet_text} cannot be processed")
