@@ -82,7 +82,6 @@ class Runner:
                     if tweet[pos] == '':
                         tweet[pos] = 0
                     tweet[pos] = int(tweet[pos])
-                print(tweet)
                 result_queue.put(tweet)
             except RuntimeError:
                 print(f"{tweet_text} cannot be processed")
