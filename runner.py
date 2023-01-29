@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
 import queue
 import logging
-import time
 
 '''
 columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis',
@@ -72,19 +71,14 @@ class Runner:
                 result = sgnlp_pipeline.run_model([input_dict])
                 tweet[TEXT_POSITION] = tweet_text
                 tweet.append(result[0]["labels"])
-                csv_writer_lock = threading.Lock()
-                with csv_writer_lock:
-                    with open(CSV_PATH, 'a', newline='', encoding='utf-8') as f:
-                        writer = csv.writer(f)
-                        writer.writerow(tweet)
-                result_queue.put(result)
+                result_queue.put(tweet)
             except RuntimeError:
                 print(f"{tweet_text} cannot be processed")
 
     def reformat_input(self, original_tweet: str, word: str) -> str:
         index = original_tweet.lower().find(word)
         front = index
-        back = index
+        back = index + len(word)
         while original_tweet[front] != " " and front > -1:
             front -= 1
         while original_tweet[back] != " " and back < len(original_tweet):
@@ -117,23 +111,17 @@ class Runner:
             dict_list.append(curr_dict)
         return dict_list
 
-    def flatten(self, nested_lst: List[List]) -> List:
-        result = []
-        for lst in nested_lst:
-            result.extend(lst)
-        return result
-
     def setup_datafile(self) -> None:
         if os.path.exists(CSV_PATH):
             os.remove(CSV_PATH)
         # header of csv
         header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis', 'Comments', 'Likes',
                   'Retweets', 'Image link', 'Tweet URL', 'scores']
-        with open(CSV_PATH, 'w', newline='', encoding='utf-8') as f:
+        with open(CSV_PATH, 'w', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(header)
 
-    def run(self) -> List:
+    def run(self) -> None:
         if not os.path.exists(DATA_DIR):
             os.mkdir(DATA_DIR)
         self.setup_datafile()
@@ -151,8 +139,13 @@ class Runner:
             for input_dictionary in input_dictionaries:
                 executor.submit(self.producer, product_queue, input_dictionary, self._driver_type)
                 executor.submit(self.consumer, product_queue, result_queue, self._word)
-        evaluation_results = self.flatten(list(result_queue.queue))
-        return evaluation_results
+        evaluation_results = list(result_queue.queue)
+        csv_writer_lock = threading.Lock()
+        with csv_writer_lock:
+            with open(CSV_PATH, 'a', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                for row in evaluation_results:
+                    writer.writerow(row)
 
 
 # if __name__ == '__main__':
