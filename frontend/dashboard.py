@@ -115,7 +115,7 @@ def subplots(property_str):
         plot_bgcolor='#F0EFEF',
         height = 100,
         width = 200,
-        margin=dict(l=5, r=0, b=0, t=0)
+        margin=dict(l=0, r=0, b=0, t=0)
     )
     fig.update_xaxes(type="category")
 
@@ -187,7 +187,6 @@ sidebar = html.Div(
 # Main contents     #
 #####################
 
-
 contents = html.Div([
     html.H4("Place for graphs"),
     dbc.Row([
@@ -196,7 +195,8 @@ contents = html.Div([
                 html.Br(),
                 dcc.Graph(id='likes',figure= subplots('likes'), 
                           config={'displayModeBar': False}),
-                html.P("Total number of likes by date", style={'textAlign': 'center', 'font-size':'10px'})
+                html.Img(id="likes_img",src=app.get_asset_url('favorite-24.png'), style={'display':'inline'}),
+                html.P("Total number of likes by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
             ])
         ]),
         dbc.Col([
@@ -204,7 +204,8 @@ contents = html.Div([
                 html.Br(),
                 dcc.Graph(id='comments', figure=subplots('comments'),
                 config={'displayModeBar': False}),
-                html.P("Total number of comments by date", style={'textAlign': 'center', 'font-size':'10px'})
+                html.Img(id="comments_img",src=app.get_asset_url('comments-24.png'), style={'display':'inline'}),
+                html.P("Total number of comments by date", style={'textAlign': 'center', 'font-size':'10px', 'display':'inline'})
             ])
         ]),
         dbc.Col([
@@ -212,7 +213,8 @@ contents = html.Div([
                 html.Br(),
                 dcc.Graph(id='retweets', figure=subplots('retweets'),
                 config={'displayModeBar': False}),
-                html.P("Total number of retweets by date", style={'textAlign': 'center', 'font-size':'10px'})
+                html.Img(id="retweets_img",src=app.get_asset_url('retweet-24.png'), style={'display':'inline'}),
+                html.P("Total number of retweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
             ])
         ]),
         dbc.Col([
@@ -220,12 +222,14 @@ contents = html.Div([
                 html.Br(),
                 dcc.Graph(id="num_tweets", figure=subplots('num_tweets'),
                 config={'displayModeBar': False}),
-                html.P("Total number of tweets by date", style={'textAlign': 'center', 'font-size':'10px'})
+                html.Img(id="tweets_img",src=app.get_asset_url('twitter-30.png'), style={'display':'inline'}),
+                html.P("Total number of tweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
             ])
             
         ])
 
     ]),
+    html.Br(),
     dbc.Row([
         dbc.Col([
             html.Div([
