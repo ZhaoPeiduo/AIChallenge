@@ -9,6 +9,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib.pyplot as plt
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
@@ -18,6 +20,27 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 df = pd.read_csv('randomdata.csv')
 df["date"] = pd.to_datetime(df["date"])
 df = df.sort_values(by='date', ascending=False)
+
+#inital plan, not based on score yet
+text = df['text']
+str = text.to_string()
+text = df['text']
+type(text)
+usetext = ''.join(text)
+
+
+####################
+# Word Cloud     #
+####################
+# Define a function to plot word cloud
+def plot_cloud(wordcloud):
+    # Set figure size
+    plt.figure(figsize=(40, 30))
+    # Display image
+    plt.imshow(wordcloud) 
+    # No axis details
+    plt.axis("off");
+
 
 ####################
 # LAYOUT SETTINGS  #
