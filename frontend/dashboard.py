@@ -19,7 +19,18 @@ df = pd.read_csv('randomdata.csv')
 df["date"] = pd.to_datetime(df["date"])
 df = df.sort_values(by='date', ascending=False)
 
-
+####################
+# LAYOUT SETTINGS  #
+####################
+def apply_standard_layout(fig):
+    fig.update_layout(
+        paper_bgcolor='rgb(250,250,250)',
+        font=dict(
+            family="Merriweather",  # specify font family
+            size=18,  # specify font size
+            color="#7f7f7f"  # specify font color
+        )
+    )
 ####################
 # Graph functions  #
 ####################
@@ -45,12 +56,11 @@ def score_by_day():
 
 def piechart():
     df_byscore = pd.DataFrame(df.groupby("score").size()).reset_index()
+    df_byscore = df_byscore.replace([-1,0,1],['negative','neutral','positive'])
     df_byscore.columns = ['score', 'count']
     pie_chart = px.pie(df_byscore, values='count', names="score", hole=.3,
-                       color_discrete_sequence=['#8B6B62', '#9E836F', '#8F7C6B'],
-                       labels={"0": 'neutral',
-                               "1": 'positive',
-                               "-1": 'negative'}, template="plotly_white")
+                       color_discrete_sequence=['#8B6B62', '#9E836F', '#8F7C6B'], 
+                       template="plotly_white")
     pie_chart.update_layout(paper_bgcolor='rgb(250,250,250)')
     pie_chart.update_layout(
         font=dict(
@@ -63,47 +73,39 @@ def piechart():
 
     return pie_chart
 
-
-def apply_standard_layout(fig):
-    fig.update_layout(
-        paper_bgcolor='rgb(250,250,250)',
-        font=dict(
-            family="Merriweather",  # specify font family
-            size=18,  # specify font size
-            color="#7f7f7f"  # specify font color
-        )
-    )
-
-
+'''
+For easy sketching of the graph, input = "comments", "likes", "retweets" or "num_tweets",
+returning x, y (series for plotting), and the tally sum
+ '''
 def df_by_date(property_str):
-    daily_avg = pd.DataFrame(df.groupby(['date'])[property_str].sum()).reset_index()
-    daily_avg.columns = ['date', property_str]
-    x=daily_avg['date']
-    y=daily_avg[property_str]
-    num = y.sum()
-    return x, y, num
-
-
-def num_tweets_by_day():
-    daily_tweet = pd.DataFrame(df.groupby(['date']).size()).reset_index()
-    daily_tweet.columns = ['date', 'num']
-    fig = px.line(daily_tweet, x='date', y='num', template='plotly_white')
-    fig.update_layout(xaxis_title='Date', yaxis_title='Number of tweets')
-    apply_standard_layout(fig)
-    return fig
-
+    if property_str == "num_tweets":
+        daily_df = pd.DataFrame(df.groupby(['date']).size()).reset_index()
+    else:
+        daily_df = pd.DataFrame(df.groupby(['date'])[property_str].sum()).reset_index()
+    daily_df.columns = ['date', property_str]
+    daily_df['date']= pd.DatetimeIndex(daily_df.date).strftime("%Y-%m-%d")
+    num = daily_df[property_str].sum()
+    return daily_df, num
+'''
+Creating the top 4 small graphs using the x, y and num returned from df_by_date function
+'''
 def subplots(property_str):
     # Create the text and graph
-    X, Y, num=df_by_date(property_str)
+    df, num=df_by_date(property_str)
 
-    text = go.Scatter(x=[0], y=[0], mode='text', text=[f"{num}"], textfont={'size': 10},
-                      textposition="middle center")
-    graph = go.Scatter(x=X, y=Y, mode='lines', fill='tozeroy', line_color='white')
+    text = go.Scatter(x=[0], y=[0], mode='text', text=[f"{num}"], textfont={'size': 30},
+                      textposition="middle left")
+    graph = go.Scatter(x=df['date'], y=df[property_str], mode='lines', fill='tozeroy', line_color='#BEB5B4')
 
     # Create the subplot
-    fig = make_subplots(rows=1, cols=1)
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # fig.add_trace(graph)
+    # fig.add_trace(text,secondary_y=True)
+
+    fig = go.Figure()
     fig.add_trace(graph)
-    fig.add_trace(text)
+    fig.add_annotation(x=3.5,y='50%',text=f"{num:,d}",showarrow=False)
+
 
     # Update the layout
     fig.update_layout(
@@ -113,13 +115,19 @@ def subplots(property_str):
         plot_bgcolor='#F0EFEF',
         height = 100,
         width = 200,
-        margin=dict(l=0, r=0, b=0, t=0)
+        margin=dict(l=5, r=0, b=0, t=0)
     )
     fig.update_xaxes(type="category")
 
     # Remove the x-axis and y-axis
     fig.update_xaxes(showticklabels=False, showgrid=False, visible=False)
     fig.update_yaxes(showticklabels=False, showgrid=False, visible=False)
+
+    # Change the hoverlabel
+    # fig.update_traces(hoverlabel=dict{
+
+
+    # })
 
     return fig
 
@@ -173,30 +181,48 @@ sidebar = html.Div(
     ],
     style=SIDEBAR_STYLE
 )
+
+
 #####################
 # Main contents     #
 #####################
+
 
 contents = html.Div([
     html.H4("Place for graphs"),
     dbc.Row([
         dbc.Col([
             html.Div([
-                dcc.Graph(id='likes',figure= subplots('likes'))
+                html.Br(),
+                dcc.Graph(id='likes',figure= subplots('likes'), 
+                          config={'displayModeBar': False}),
+                html.P("Total number of likes by date", style={'textAlign': 'center', 'font-size':'10px'})
             ])
         ]),
         dbc.Col([
             html.Div([
-                dcc.Graph(id='comments', figure=subplots('comments'))
+                html.Br(),
+                dcc.Graph(id='comments', figure=subplots('comments'),
+                config={'displayModeBar': False}),
+                html.P("Total number of comments by date", style={'textAlign': 'center', 'font-size':'10px'})
             ])
         ]),
         dbc.Col([
             html.Div([
-                dcc.Graph(id='retweets', figure=subplots('retweets'))
+                html.Br(),
+                dcc.Graph(id='retweets', figure=subplots('retweets'),
+                config={'displayModeBar': False}),
+                html.P("Total number of retweets by date", style={'textAlign': 'center', 'font-size':'10px'})
             ])
         ]),
         dbc.Col([
-            dcc.Graph(id="num_tweets", figure=num_tweets_by_day())
+            html.Div([
+                html.Br(),
+                dcc.Graph(id="num_tweets", figure=subplots('num_tweets'),
+                config={'displayModeBar': False}),
+                html.P("Total number of tweets by date", style={'textAlign': 'center', 'font-size':'10px'})
+            ])
+            
         ])
 
     ]),
