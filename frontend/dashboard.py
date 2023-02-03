@@ -154,7 +154,8 @@ sidebar = html.Div(
         html.Div(children=[
             html.H5('Search Keyword'),
             html.Br(),
-            dcc.Input(id='search-bar', placeholder='Search...'),
+            dcc.Input(id='search-bar', placeholder='Search...', style={'display':'inline'}),
+            html.Img(id="search_img",src=app.get_asset_url('search-48.png'), style={'display':'inline'}),
         ]),
         html.Br(),
         html.Br(),
