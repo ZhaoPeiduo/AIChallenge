@@ -178,7 +178,23 @@ sidebar = html.Div(
             html.H5('Search Keyword'),
             html.Br(),
             dcc.Input(id='search-bar', placeholder='Search...', style={'display':'inline'}),
-            html.Img(id="search_img",src=app.get_asset_url('search-48.png'), style={'display':'inline'}),
+            html.Span("  "),
+            html.Button(
+                id='search_button',
+                children=[
+                    html.Img(id="search_img",src=app.get_asset_url('search-48.png'), style={'display':'inline'}),
+                ],
+                style={
+                    'display': 'inline-block',
+                    'width': '50px',
+                    'height': '50px',
+                    'border': 'none',
+                    'background-color': '#BEB5B4',
+                    'border-radius': '25px',
+                    'text-align': 'center',
+                    'position': 'relative'}
+            )
+            ,
         ]),
         html.Br(),
         html.Br(),
@@ -199,7 +215,8 @@ sidebar = html.Div(
                 max_date_allowed=date.today(),
                 initial_visible_month=date.today() - dt.timedelta(days=7),
                 start_date=date.today() - dt.timedelta(days=7),
-                end_date=date.today()
+                end_date=date.today(),
+                stay_open_on_select=True
             ),
         ]),
     ],
@@ -212,7 +229,7 @@ sidebar = html.Div(
 #####################
 
 contents = html.Div([
-    html.H4("Place for graphs"),
+    html.H4("Sentiment Analysis of Tweets"),
     dbc.Row([
         dbc.Col([
             html.Div([
@@ -220,7 +237,7 @@ contents = html.Div([
                 dcc.Graph(id='likes',figure= subplots('likes'), 
                           config={'displayModeBar': False}),
                 html.Img(id="likes_img",src=app.get_asset_url('favorite-24.png'), style={'display':'inline'}),
-                html.P("Total number of likes by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
+                html.P("  Total number of likes by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
             ])
         ]),
         dbc.Col([
@@ -229,7 +246,7 @@ contents = html.Div([
                 dcc.Graph(id='comments', figure=subplots('comments'),
                 config={'displayModeBar': False}),
                 html.Img(id="comments_img",src=app.get_asset_url('comments-24.png'), style={'display':'inline'}),
-                html.P("Total number of comments by date", style={'textAlign': 'center', 'font-size':'10px', 'display':'inline'})
+                html.P("  Total number of comments by date", style={'textAlign': 'center', 'font-size':'10px', 'display':'inline'})
             ])
         ]),
         dbc.Col([
@@ -238,7 +255,7 @@ contents = html.Div([
                 dcc.Graph(id='retweets', figure=subplots('retweets'),
                 config={'displayModeBar': False}),
                 html.Img(id="retweets_img",src=app.get_asset_url('retweet-24.png'), style={'display':'inline'}),
-                html.P("Total number of retweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
+                html.P("  Total number of retweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
             ])
         ]),
         dbc.Col([
@@ -246,8 +263,8 @@ contents = html.Div([
                 html.Br(),
                 dcc.Graph(id="num_tweets", figure=subplots('num_tweets'),
                 config={'displayModeBar': False}),
-                html.Img(id="tweets_img",src=app.get_asset_url('twitter-30.png'), style={'display':'inline'}),
-                html.P("Total number of tweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
+                html.Img(id="tweets_img",src=app.get_asset_url('twitter-30.png'), style={'display':'inline', 'height':'25px','width':'25px'}),
+                html.P("  Total number of tweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
             ])
             
         ])
@@ -293,6 +310,12 @@ app.layout = dbc.Row([
 ])
 
 '''
+@app.callback(
+    [
+        Input(component_id='calendar', component_property='start_date'),
+        Input(component_id='calendar', component_property='end_date')
+    ]
+)
 @app.callback(
     [Output(component_id='calendar', component_property='end_date'),
      Output(component_id='warning', component_property='children')],
