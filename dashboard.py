@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
-# from runner import Runner
+import runner
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
@@ -25,7 +25,7 @@ change = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"c
 ####################
 # DATA IMPORT      #
 ####################
-df = pd.read_csv('../outputs/data.csv')
+df = pd.read_csv('outputs/data.csv')
 df["date"] = pd.to_datetime(df["date"]).dt.date
 df = df.sort_values(by='date', ascending=False)
 
@@ -398,7 +398,7 @@ def update_recs(value):
     details3="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
     return tweet1, details1, tweet2, details2, tweet3, details3
-'''
+
 @app.callback([
     Output("placeholder", 'children'),
     Input('search_button', 'n_clicks'),
@@ -415,8 +415,8 @@ def run_backend(n_clicks, start_date, end_date, value):
             cur=change
             # runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             # runner()  # Call the __call__ method
-    return " "
-'''
+    return [""]
+
 
 
 if __name__ == '__main__':
