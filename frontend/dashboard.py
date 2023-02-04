@@ -28,6 +28,55 @@ text = df['text']
 type(text)
 usetext = ''.join(text)
 
+####################
+# Code for recs   #
+####################
+comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+
+
+card = dbc.Card(
+    [
+            dbc.CardBody(
+            [
+                html.H4("Trending Posts", className="card-title"),
+                dcc.Dropdown(id = "tweet-rec",
+                    options = [
+                        {'label': 'By Comments', 'value': 'By Comments'},
+                        {'label': 'By Likes', 'value': 'By Likes'},
+                        {'label': 'By Retweets', 'value': 'By Retweets'}
+                    ],
+                    value='By Comments'
+                ),
+                html.Br(),
+                html.Div([
+                    html.H4("# 1"),
+                    html.Main(id = "tweet-1", children = [comments["text"][0]], style = {"font-size": "18px"}),
+                    html.P(id = "details-1", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][0], comments["likes"][0], comments["retweets"][0], comments["date"][0])
+                    ], style = {"font-size": "10px"}),
+                ], className="card-text",),
+                html.Hr(),
+                html.Br(),
+                html.Div([
+                    html.H4("# 2"),
+                    html.Main(id = "tweet-2", children = [comments["text"][1]], style = {"font-size": "18px"}),
+                    html.P(id = "details-2", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][1], comments["likes"][1], comments["retweets"][1], comments["date"][1])
+                    ], style = {"font-size": "10px"}),
+                ], className="card-text",),
+                html.Hr(),
+                html.Br(),
+                html.Div([
+                    html.H4("# 3"),
+                    html.Main(id = "tweet-3", children = [comments["text"][2]], style = {"font-size": "18px"}),
+                    html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][2], comments["likes"][2], comments["retweets"][2], comments["date"][2])
+                    ], style = {"font-size": "10px"}),
+                ], className="card-text",),
+            ]
+        ),
+    ],
+    style={"width": "25rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
+)
 
 ####################
 # Word Cloud     #
@@ -293,6 +342,12 @@ contents = html.Div([
     ]),
     html.Div(id='main-content', children=[
     ]),
+    dbc.Row([
+        dbc.Col([
+            # recommended tweets
+            card
+        ])
+    ])
 ], style=MAIN_STYLE)
 
 ####################
@@ -309,30 +364,31 @@ app.layout = dbc.Row([
     ], width=8)
 ])
 
-'''
-@app.callback(
-    [
-        Input(component_id='calendar', component_property='start_date'),
-        Input(component_id='calendar', component_property='end_date')
-    ]
-)
-@app.callback(
-    [Output(component_id='calendar', component_property='end_date'),
-     Output(component_id='warning', component_property='children')],
-    [Input(component_id='calendar', component_property='start_date'),
-     Input(component_id='range-picker', component_property='value')]
-)
-def update_end_date(start_date, value):
-    out_of_range = False
-    if value == "3 Days":
-        if start_date + dt.timedelta(days = 3) > date.today():
-            output1 = date.today()
-    
-    elif value == "1 Week":
-    
-    elif value == "2 Weeks":
-    
-'''
+@app.callback([
+    Output('tweet-1', 'children'),
+    Output('details-1', 'children'),
+    Output('tweet-2', 'children'),
+    Output('details-2', 'children'),
+    Output('tweet-3', 'children'),
+    Output('details-3', 'children'),
+], [Input('tweet-rec', 'value')])
+
+def update_recs(value):
+    if value == "By Comments":
+        data = comments
+    elif value == "By Likes":
+        data = likes
+    elif value == "By Retweets":
+        data = retweets
+    tweet1 = data["text"][0]
+    details1= "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
+    tweet2=data["text"][1]
+    details2="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
+    tweet3=data["text"][2]
+    details3="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
+
+    return tweet1, details1, tweet2, details2, tweet3, details3
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
