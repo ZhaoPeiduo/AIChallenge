@@ -126,8 +126,8 @@ class Runner:
         if os.path.exists(CSV_PATH):
             os.remove(CSV_PATH)
         # header of csv
-        header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Comments', 'Likes',
-                  'Retweets', 'Tweet URL', 'scores']
+        header = ['userScreenName', 'userName', 'date', 'text', 'comments', 'likes',
+                  'retweets', 'tweetURL', 'score']
         with open(CSV_PATH, 'w', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(header)
