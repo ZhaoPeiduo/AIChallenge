@@ -9,15 +9,22 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-# from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
+from datetime import datetime
+
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 ####################
+# GLOBAL VAR       #
+####################
+cur = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"chatgpt"}
+change = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"chatgpt"}
+
+####################
 # DATA IMPORT      #
 ####################
-df = pd.read_csv('randomdata.csv')
+df = pd.read_csv('../outputs/data.csv')
 df["date"] = pd.to_datetime(df["date"])
 df = df.sort_values(by='date', ascending=False)
 
@@ -165,8 +172,8 @@ def subplots(property_str):
     # Create the text and graph
     df, num=df_by_date(property_str)
 
-    text = go.Scatter(x=[0], y=[0], mode='text', text=[f"{num}"], textfont={'size': 30},
-                      textposition="middle left")
+    # text = go.Scatter(x=[0], y=[0], mode='text', text=[f"{num}"], textfont={'size': 30},
+    #                   textposition="middle center")
     graph = go.Scatter(x=df['date'], y=df[property_str], mode='lines', fill='tozeroy', line_color='#BEB5B4')
 
     # Create the subplot
@@ -176,7 +183,7 @@ def subplots(property_str):
 
     fig = go.Figure()
     fig.add_trace(graph)
-    fig.add_annotation(x=3.5,y='50%',text=f"{num:,d}",showarrow=False)
+    fig.add_annotation(x='50%',y='50%',text=f"{num:,d}",showarrow=False)
 
 
     # Update the layout
@@ -389,7 +396,15 @@ def update_recs(value):
     details3="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
     return tweet1, details1, tweet2, details2, tweet3, details3
+'''
+@app.callback([
 
+    Output()
+    Input('search_button', 'n_clicks')
+    
+
+])
+'''
 
 if __name__ == '__main__':
     app.run_server(debug=True)
