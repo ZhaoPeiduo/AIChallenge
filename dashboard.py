@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
-import runner
+from runner import Runner
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
@@ -271,8 +271,8 @@ sidebar = html.Div(
                 calendar_orientation='vertical',
                 #max_date_allowed=date.today(),
                 initial_visible_month=datetime(2023, 1, 1),
-                start_date=datetime(2023, 1, 20),
-                end_date=datetime(2023, 2, 4),
+                #start_date=datetime(2023, 1, 20),
+                #end_date=datetime(2023, 2, 4),
                 stay_open_on_select=True
             ),
         ]),
@@ -406,15 +406,20 @@ def update_recs(value):
     Input('calendar', 'start_date'),
     Input('calendar', 'end_date')
 ])
-def run_backend(n_clicks, start_date, end_date, value):
-    change['start']=start_date
-    change['end']=end_date
-    change['keyword']=value
-    if n_clicks:
-        if cur!=change:
-            cur=change
-            # runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
-            # runner()  # Call the __call__ method
+def run_backend(n_clicks, value, start_date, end_date):
+    global cur, change, df
+    if start_date is not None and end_date is not None:
+   
+        change['start']=datetime.strptime(start_date, "%Y-%m-%d")
+        change['end']=datetime.strptime(end_date, "%Y-%m-%d")
+        change['keyword']=value
+        if n_clicks:
+            n_clicks=0
+            if cur!=change:
+                cur=change
+                runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
+                runner()  # Call the __call__ method
+
     return [""]
 
 
