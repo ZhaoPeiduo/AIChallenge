@@ -26,7 +26,10 @@ from .const import get_username, get_password, get_email
 
 def get_data(card, save_images=False, save_dir=None):
     """Extract data from tweet card"""
-
+    try:
+        username = card.find_element_by_xpath('.//span').text
+    except:
+        return
     try:
         handle = card.find_element_by_xpath('.//span[contains(text(), "@")]').text
     except:
@@ -73,7 +76,7 @@ def get_data(card, save_images=False, save_dir=None):
     except:
         return
 
-    tweet = [handle, postdate, text, reply_cnt, retweet_cnt, like_cnt, tweet_url]
+    tweet = [username, handle, postdate, text, reply_cnt, retweet_cnt, like_cnt, tweet_url]
     return tweet
 
 
@@ -244,7 +247,7 @@ def keep_scroling(driver, queue, tweet_ids, scrolling, tweet_parsed, limit, scro
                 if tweet_id not in tweet_ids:
                     tweet_ids.add(tweet_id)
                     queue.put(tweet)
-                    last_date = str(tweet[1])
+                    last_date = str(tweet[2])
                     print("Tweet made at: " + str(last_date) + " is found.")
                     tweet_parsed += 1
                     if tweet_parsed >= limit:

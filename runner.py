@@ -12,13 +12,13 @@ import queue
 import logging
 
 '''
-columns = ['UserName', 'Timestamp', 'Text', 'Comments', 'Likes', 'Retweets', 'Tweet URL', 'score']
+columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Comments', 'Likes', 'Retweets', 'Tweet URL', 'score']
 '''
 
-TEXT_POSITION = 2  # Refer to the column legend above
-COMMENTS_POSITION = 3
-LIKES_POSITION = 4
-RETWEETS_POSITION = 5
+TEXT_POSITION = 3  # Refer to the column legend above
+COMMENTS_POSITION = 4
+LIKES_POSITION = 5
+RETWEETS_POSITION = 6
 
 
 class Runner:
