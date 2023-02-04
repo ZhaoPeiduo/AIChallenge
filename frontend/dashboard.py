@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
-from runner import Runner
+# from runner import Runner
 
 import sys
 sys.path.insert(0, '../')
@@ -417,7 +417,7 @@ def run_backend(n_clicks, start_date, end_date, value):
     if n_clicks:
         if cur!=change:
             cur=change
-            runner = runner.Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
+            # runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             # runner()  # Call the __call__ method
     return " "
 
