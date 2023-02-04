@@ -22,12 +22,19 @@ RETWEETS_POSITION = 6
 
 
 class Runner:
+    COMPLETE_TASKS = 0
+    TOTAL_TASKS = 0
+
     def __init__(self, start: datetime, end: datetime, word: str, limit: int, driver_type: str):
+        Runner.COMPLETE_TASKS = 0
+        Runner.TOTAL_TASKS = 0
         self._start = start
         self._end = end
         self._word = word
         self._limit = limit
         self._driver_type = driver_type
+        self.success_count = 0
+        self.fail_count = 0
 
     def __call__(self):
         # Silent debug info
@@ -42,6 +49,7 @@ class Runner:
     def consumer(self, product_queue: queue.Queue, result_queue: queue.Queue, word: str) -> None:
         # print("consumer called!", flush=True)
         # Standardise input word to lower case
+
         word = word.lower()
         while True:
             tweet = product_queue.get()
@@ -83,8 +91,10 @@ class Runner:
                         tweet[pos] = 0
                     tweet[pos] = int(tweet[pos])
                 result_queue.put(tweet)
+                self.success_count += 1
             except RuntimeError:
                 print(f"{tweet_text} cannot be processed")
+                self.fail_count += 1
 
     def reformat_input(self, original_tweet: str, word: str) -> str:
         index = original_tweet.lower().find(word)
@@ -108,7 +118,6 @@ class Runner:
             result.append((temp_start.strftime('%Y-%m-%d'), temp_end.strftime('%Y-%m-%d')))
             temp_start += timedelta(days=1)
             temp_end += timedelta(days=1)
-
         return result
 
     def generate_input_dictionaries(self, workload_assignment: List[Tuple], word: str, limit: int) -> List[Dict]:
@@ -126,11 +135,12 @@ class Runner:
         if os.path.exists(CSV_PATH):
             os.remove(CSV_PATH)
         # header of csv
-        header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Comments', 'Likes',
-                  'Retweets', 'Tweet URL', 'scores']
+        header = ['userScreenName', 'userName', 'date', 'text', 'comments', 'likes',
+                  'retweets', 'tweetURL', 'score']
         with open(CSV_PATH, 'w', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(header)
+
 
     def run(self) -> None:
         if not os.path.exists(DATA_DIR):
@@ -146,10 +156,17 @@ class Runner:
         # self.producer(product_queue, input_dict=input_dictionaries[2], driver_type="chrome")
         # print(len(product_queue.queue))
         # self.consumer(product_queue, result_queue, self._word)
+
+        def update_progress(future):
+            Runner.COMPLETE_TASKS += 1
+            print(f"current progress: {Runner.COMPLETE_TASKS/ Runner.TOTAL_TASKS}")
+
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for input_dictionary in input_dictionaries:
                 executor.submit(self.producer, product_queue, input_dictionary, self._driver_type)
-                executor.submit(self.consumer, product_queue, result_queue, self._word)
+                cfuture = executor.submit(self.consumer, product_queue, result_queue, self._word)
+                cfuture.add_done_callback(update_progress)
+                Runner.TOTAL_TASKS += 1
         evaluation_results = list(result_queue.queue)
         csv_writer_lock = threading.Lock()
         with csv_writer_lock:
