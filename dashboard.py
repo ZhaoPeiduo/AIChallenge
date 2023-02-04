@@ -419,8 +419,6 @@ def run_backend(n_clicks, value, start_date, end_date):
                 cur=change
                 runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
                 runner()  # Call the __call__ method
-        else:
-            raise PreventUpdate
     print("exiting caller...", start_date, end_date)
     return [""]
 
