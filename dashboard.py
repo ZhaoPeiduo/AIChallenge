@@ -8,6 +8,7 @@ import datetime as dt
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from dash.exceptions import PreventUpdate
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -409,20 +410,19 @@ def update_recs(value):
 def run_backend(n_clicks, value, start_date, end_date):
     global cur, change, df
     if start_date is not None and end_date is not None:
-   
         change['start']=datetime.strptime(start_date, "%Y-%m-%d")
         change['end']=datetime.strptime(end_date, "%Y-%m-%d")
         change['keyword']=value
         if n_clicks:
-            n_clicks=0
+            # n_clicks=0
             if cur!=change:
                 cur=change
                 runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
                 runner()  # Call the __call__ method
-
+    print("exiting caller...", start_date, end_date)
     return [""]
 
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, threaded=False)

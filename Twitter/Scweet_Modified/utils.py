@@ -41,7 +41,13 @@ def get_data(card, save_images=False, save_dir=None):
         return
 
     try:
-        text = card.find_element_by_xpath('.//div[2]/div[2]/div[2]').text
+        text = ""
+        raw_text = card.find_element_by_xpath('.//div[2]/div[2]/div[2]').text
+        lines = raw_text.split("\n")
+        for line in lines:
+            if len(line) > 0 and not line.isnumeric():
+                text += " "
+                text += line
     except:
         text = ""
 
