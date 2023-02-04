@@ -13,10 +13,6 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 # from runner import Runner
 
-import sys
-sys.path.insert(0, '../')
-
-
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
@@ -275,8 +271,8 @@ sidebar = html.Div(
                 calendar_orientation='vertical',
                 max_date_allowed=date.today(),
                 initial_visible_month=date.today() - dt.timedelta(days=7),
-                start_date=date.today() - dt.timedelta(days=7),
-                end_date=date.today(),
+                start_date=datetime(2023, 1, 20),
+                end_date=datetime(2023, 2, 4),
                 stay_open_on_select=True
             ),
         ]),
@@ -402,7 +398,7 @@ def update_recs(value):
     details3="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
     return tweet1, details1, tweet2, details2, tweet3, details3
-
+'''
 @app.callback([
     Output("placeholder", 'children'),
     Input('search_button', 'n_clicks'),
@@ -420,7 +416,7 @@ def run_backend(n_clicks, start_date, end_date, value):
             # runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             # runner()  # Call the __call__ method
     return " "
-
+'''
 
 
 if __name__ == '__main__':
