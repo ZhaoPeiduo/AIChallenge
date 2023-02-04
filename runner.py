@@ -12,14 +12,13 @@ import queue
 import logging
 
 '''
-columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis',
-   'Comments', 'Likes', 'Retweets','Image link', 'Tweet URL', 'score']
+columns = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Comments', 'Likes', 'Retweets', 'Tweet URL', 'score']
 '''
 
-TEXT_POSITION = 4  # Refer to the column legend above
-COMMENTS_POSITION = 6
-LIKES_POSITION = 7
-RETWEETS_POSITION = 8
+TEXT_POSITION = 3  # Refer to the column legend above
+COMMENTS_POSITION = 4
+LIKES_POSITION = 5
+RETWEETS_POSITION = 6
 
 
 class Runner:
@@ -126,8 +125,8 @@ class Runner:
         if os.path.exists(CSV_PATH):
             os.remove(CSV_PATH)
         # header of csv
-        header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Embedded_text', 'Emojis', 'Comments', 'Likes',
-                  'Retweets', 'Image link', 'Tweet URL', 'scores']
+        header = ['UserScreenName', 'UserName', 'Timestamp', 'Text', 'Comments', 'Likes',
+                  'Retweets', 'Tweet URL', 'scores']
         with open(CSV_PATH, 'w', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(header)

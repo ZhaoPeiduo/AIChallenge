@@ -26,13 +26,10 @@ from .const import get_username, get_password, get_email
 
 def get_data(card, save_images=False, save_dir=None):
     """Extract data from tweet card"""
-    image_links = []
-
     try:
         username = card.find_element_by_xpath('.//span').text
     except:
         return
-
     try:
         handle = card.find_element_by_xpath('.//span[contains(text(), "@")]').text
     except:
@@ -44,14 +41,9 @@ def get_data(card, save_images=False, save_dir=None):
         return
 
     try:
-        text = card.find_element_by_xpath('.//div[2]/div[2]/div[1]').text
+        text = card.find_element_by_xpath('.//div[2]/div[2]/div[2]').text
     except:
         text = ""
-
-    try:
-        embedded = card.find_element_by_xpath('.//div[2]/div[2]/div[2]').text
-    except:
-        embedded = ""
 
     # text = comment + embedded
 
@@ -71,39 +63,11 @@ def get_data(card, save_images=False, save_dir=None):
         like_cnt = 0
 
     try:
-        elements = card.find_elements_by_xpath('.//div[2]/div[2]//img[contains(@src, "https://pbs.twimg.com/")]')
-        for element in elements:
-            image_links.append(element.get_attribute('src'))
-    except:
-        image_links = []
-
-    # if save_images == True:
-    #	for image_url in image_links:
-    #		save_image(image_url, image_url, save_dir)
-    # handle promoted tweets
-
-    try:
         promoted = card.find_element_by_xpath('.//div[2]/div[2]/[last()]//span').text == "Promoted"
     except:
         promoted = False
     if promoted:
         return
-
-    # get a string of all emojis contained in the tweet
-    try:
-        emoji_tags = card.find_elements_by_xpath('.//img[contains(@src, "emoji")]')
-    except:
-        return
-    emoji_list = []
-    for tag in emoji_tags:
-        try:
-            filename = tag.get_attribute('src')
-            emoji = chr(int(re.search(r'svg\/([a-z0-9]+)\.svg', filename).group(1), base=16))
-        except AttributeError:
-            continue
-        if emoji:
-            emoji_list.append(emoji)
-    emojis = ' '.join(emoji_list)
 
     # tweet url
     try:
@@ -112,12 +76,11 @@ def get_data(card, save_images=False, save_dir=None):
     except:
         return
 
-    tweet = [
-        username, handle, postdate, text, embedded, emojis, reply_cnt, retweet_cnt, like_cnt, image_links, tweet_url]
+    tweet = [username, handle, postdate, text, reply_cnt, retweet_cnt, like_cnt, tweet_url]
     return tweet
 
 
-def init_driver(headless=True, proxy=None, show_images=False, option=None, driver_type="chrome"):
+def init_driver(headless=True, proxy=None, option=None, driver_type="chrome"):
     """ initiate a chromedriver instance 
         --option : other option to add (str)
     """
@@ -280,7 +243,7 @@ def keep_scroling(driver, queue, tweet_ids, scrolling, tweet_parsed, limit, scro
             tweet = get_data(card)
             if tweet:
                 # check if the tweet is unique
-                tweet_id = ''.join(tweet[:-2])
+                tweet_id = ''.join(tweet[:-1])
                 if tweet_id not in tweet_ids:
                     tweet_ids.add(tweet_id)
                     queue.put(tweet)
