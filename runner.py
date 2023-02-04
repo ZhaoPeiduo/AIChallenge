@@ -174,6 +174,7 @@ class Runner:
                 writer = csv.writer(f)
                 for row in evaluation_results:
                     writer.writerow(row)
+        print("exiting runner...")
 
 
 # if __name__ == '__main__':
