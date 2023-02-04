@@ -234,7 +234,7 @@ sidebar = html.Div(
         html.Div(children=[
             html.H5('Search Keyword'),
             html.Br(),
-            dcc.Input(id='search-bar', placeholder='Search...', style={'display':'inline'}),
+            dcc.Input(id='search-bar', placeholder='chatgpt', style={'display':'inline'}),
             html.Span("  "),
             html.Button(
                 id='search_button',
@@ -265,12 +265,12 @@ sidebar = html.Div(
             html.H6('Date'),
             dcc.DatePickerRange(
                 id="calendar",
-                min_date_allowed=date.today() - dt.timedelta(days=14),
+                #min_date_allowed=date.today() - dt.timedelta(days=14),
                 # start_date_placeholder_text="Start Period",
                 # end_date_placeholder_text="End Period",
                 calendar_orientation='vertical',
-                max_date_allowed=date.today(),
-                initial_visible_month=date.today() - dt.timedelta(days=7),
+                #max_date_allowed=date.today(),
+                initial_visible_month=datetime(2023, 1, 1),
                 start_date=datetime(2023, 1, 20),
                 end_date=datetime(2023, 2, 4),
                 stay_open_on_select=True
