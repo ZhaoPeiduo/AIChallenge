@@ -1,3 +1,5 @@
+import os.path
+
 import dash
 from dash import html
 from dash import dcc
@@ -17,6 +19,14 @@ from runner import Runner
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
+output_dir = os.path.join(os.curdir, "outputs")
+if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
+
+csv_file = os.path.join(output_dir, "data.csv")
+with open(csv_file, 'w') as f:
+    f.write("userScreenName,userName,date,text,comments,likes,retweets,tweetURL,score")
+
 ####################
 # GLOBAL VAR       #
 ####################
@@ -26,10 +36,14 @@ change = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"c
 ####################
 # DATA IMPORT      #
 ####################
-df = pd.read_csv('outputs/data.csv')
-df["date"] = pd.to_datetime(df["date"]).dt.date
-df = df.sort_values(by='date', ascending=False)
 
+def update_df():
+    new_df = pd.read_csv('outputs/data.csv')
+    new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
+    new_df = new_df.sort_values(by='date', ascending=False)
+    return new_df
+
+df = update_df()
 
 def get_data():
     global df, comments, likes, retweets
@@ -412,6 +426,9 @@ app.layout = dbc.Row([
 ], [Input('tweet-rec', 'value')])
 
 def update_recs(value):
+    global df
+    df = update_df()
+
     if value == "By Comments":
         data = comments
     elif value == "By Likes":
@@ -481,7 +498,6 @@ def run_backend(n_clicks, value, start_date, end_date):
 
     print("exiting caller...", start_date, end_date)
     return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie
-
 
 
 
