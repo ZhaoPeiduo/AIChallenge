@@ -471,6 +471,7 @@ def update_recs(value):
 ])
 def run_backend(n_clicks, value, start_date, end_date):
     global cur, change, df
+    df = update_df()
     temp_likes = subplots('likes')
     temp_comments = subplots('comments')
     temp_retweets = subplots('retweets')
