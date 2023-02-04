@@ -342,6 +342,7 @@ contents = html.Div([
     ]),
     html.Div(id='main-content', children=[
     ]),
+    html.Br(),
     dbc.Row([
         dbc.Col([
             # recommended tweets
