@@ -22,8 +22,9 @@ RETWEETS_POSITION = 6
 
 
 class Runner:
-    def __init__(self, num_of_days: int, word: str, limit: int, driver_type: str):
-        self._num_of_days = num_of_days
+    def __init__(self, start: datetime, end: datetime, word: str, limit: int, driver_type: str):
+        self._start = start
+        self._end = end
         self._word = word
         self._limit = limit
         self._driver_type = driver_type
@@ -97,16 +98,16 @@ class Runner:
         reformat_tweet = original_tweet.replace(original_tweet[front + 1:back], word)
         return reformat_tweet
 
-    def split_task(self, num_of_days: int) -> List[Tuple]:
-        current_time = datetime.now()
-        start = current_time - timedelta(days=num_of_days)
-        end = start + timedelta(days=1)
+    def split_task(self, start: datetime, end: datetime) -> List[Tuple]:
+        num_of_days = (end - start).days
+        temp_start = start
+        temp_end = start + timedelta(days=1)
         result = []
 
         for i in range(num_of_days):
-            result.append((start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d')))
-            start += timedelta(days=1)
-            end += timedelta(days=1)
+            result.append((temp_start.strftime('%Y-%m-%d'), temp_end.strftime('%Y-%m-%d')))
+            temp_start += timedelta(days=1)
+            temp_end += timedelta(days=1)
 
         return result
 
@@ -136,7 +137,7 @@ class Runner:
             os.mkdir(DATA_DIR)
         self.setup_datafile()
 
-        workload_assignment = self.split_task(self._num_of_days)
+        workload_assignment = self.split_task(self._start, self._end)
         input_dictionaries = self.generate_input_dictionaries(workload_assignment, self._word, self._limit)
 
         product_queue = queue.Queue()
