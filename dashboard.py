@@ -30,6 +30,16 @@ df = pd.read_csv('outputs/data.csv')
 df["date"] = pd.to_datetime(df["date"]).dt.date
 df = df.sort_values(by='date', ascending=False)
 
+
+def get_data():
+    global df, comments, likes, retweets
+    df = pd.read_csv('outputs/data.csv')
+    df["date"] = pd.to_datetime(df["date"]).dt.date
+    df = df.sort_values(by='date', ascending=False)
+    comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+    likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+    retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+
 #inital plan, not based on score yet
 text = df['text']
 str = text.to_string()
@@ -402,7 +412,19 @@ def update_recs(value):
 
 @app.callback([
     Output("placeholder", 'children'),
-    Input('search_button', 'n_clicks'),
+    Output('likes', 'figure'),
+    Output('comments', 'figure'),
+    Output('retweets', 'figure'),
+    Output('num_tweets', 'figure'),
+    Output('score by day', 'figure'),
+    Output('piechart', 'figure'),
+    Output('tweet-1', 'children'),
+    Output('details-1', 'children'),
+    Output('tweet-2', 'children'),
+    Output('details-2', 'children'),
+    Output('tweet-3', 'children'),
+    Output('details-3', 'children')],
+    [Input('search_button', 'n_clicks'),
     Input('search-bar', 'value'),
     Input('calendar', 'start_date'),
     Input('calendar', 'end_date')
@@ -419,8 +441,16 @@ def run_backend(n_clicks, value, start_date, end_date):
                 cur=change
                 runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
                 runner()  # Call the __call__ method
+                get_data()
+                likes = subplots('likes')
+                comments = subplots('comments')
+                retweets = subplots('retweets')
+                numtweets = subplots('num_tweets')
+                scorebyday = score_by_day()
+                pie = piechart()
+
     print("exiting caller...", start_date, end_date)
-    return [""]
+    return [""], likes, comments, retweets, numtweets, scorebyday, pie
 
 
 
