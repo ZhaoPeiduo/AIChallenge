@@ -50,20 +50,25 @@ def update_df():
     return new_df
 
 
-df = update_df()
-
-
 def get_data():
     global df, comments, likes, retweets
     comments = df.sort_values(by="comments", ascending=False)
     likes = df.sort_values(by="likes", ascending=False)
     retweets = df.sort_values(by="retweets", ascending=False)
 
-    if df.size > 3:
+    if df.size >= 3:
         comments = comments.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
         likes = likes.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
         retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+    else:
+        comments = comments.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+        likes = likes.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+        retweets = retweets.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
 
+
+df = update_df()
+comments = likes = retweets = pd.DataFrame()
+get_data()
 
 ####################
 # hashtags         #
@@ -110,15 +115,6 @@ msg = get_most_frequent_words()
 ####################
 # Code for recs   #
 ####################
-
-comments = df.sort_values(by="comments", ascending=False)
-likes = df.sort_values(by="likes", ascending=False)
-retweets = df.sort_values(by="retweets", ascending=False)
-
-if not df.empty:
-    comments = comments.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-    likes = likes.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-    retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
 
 card = dbc.Card(
     [
@@ -170,17 +166,17 @@ card = dbc.Card(
                 html.Br(),
                 html.Div([
                     html.H4("# 3"),
-                    html.Main(id="tweet-3", children=[comments["text"][2] if not comments.empty else ""],
+                    html.Main(id="tweet-3", children=[comments["text"][2] if comments.size >= 3 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link3",
-                           children=["Link: {}".format(comments["tweetURL"][2] if not comments.empty else "")],
+                           children=["Link: {}".format(comments["tweetURL"][2] if comments.size >= 3 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-3",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][2] if not comments.empty else 0,
-                                   comments["likes"][2] if not comments.empty else 0,
-                                   comments["retweets"][2] if not comments.empty else 0,
-                                   comments["date"][2] if not comments.empty else 0)
+                           .format(comments["comments"][2] if comments.size >= 3 else 0,
+                                   comments["likes"][2] if comments.size >= 3 else 0,
+                                   comments["retweets"][2] if comments.size >= 3 else 0,
+                                   comments["date"][2] if comments.size >= 3 else 0)
                                      ], style={"font-size": "10px"}),
                 ], className="card-text", ),
             ]
