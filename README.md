@@ -1,4 +1,4 @@
-This project requires Python 3.8+ and requires selenium-4.2.0 to run properly.
+This project requires Python 3.8+ and selenium-4.2.0 to run properly.
 
 To install requirements for the external packages used (sgnlp and scweet-modified_ver), run:
 <pre><code>pip install -r requirements.txt</code></pre>
