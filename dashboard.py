@@ -19,6 +19,7 @@ from datetime import datetime
 from runner import Runner
 import itertools
 from collections import Counter
+import threading
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
@@ -35,7 +36,7 @@ with open(csv_file, 'w') as f:
 ####################
 cur = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
 change = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
-
+prog_val = 0
 
 ####################
 # DATA IMPORT      #
@@ -384,7 +385,9 @@ sidebar = html.Div(
                 stay_open_on_select=True
             ),
         ]),
-        html.Div(id="placeholder", children=[""])
+        html.Div(id="placeholder", children=[""]),
+        dcc.Interval(id="progress-interval", n_intervals=0, interval=1500),
+        dbc.Progress(id="progress", value = 0, max = 100)
     ],
     style=SIDEBAR_STYLE
 )
@@ -561,7 +564,8 @@ def update_recs(value):
      Output('piechart', 'figure'),
      Output('tweet-rec', 'value'),
      Output('hashtag_msg', 'children'),
-     Output('modal_no_result', 'is_open')],
+     Output('modal_no_result', 'is_open'),
+    ],
     [Input('search_button', 'n_clicks')],
     [State('search-bar', 'value'),
      State('calendar', 'start_date'),
@@ -572,7 +576,7 @@ def update_recs(value):
     ]
 )
 def run_backend(n_clicks, value, start_date, end_date):
-    global cur, change, df, msg
+    global cur, change, df, msg, prog_val
     temp_likes = subplots('likes')
     temp_comments = subplots('comments')
     temp_retweets = subplots('retweets')
@@ -589,7 +593,12 @@ def run_backend(n_clicks, value, start_date, end_date):
         if cur != change:
             cur = change
             runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
-            runner()  # Call the __call__ method
+            thread = threading.Thread(target=runner)
+            thread.start()
+            #runner()  # Call the __call__ method
+            while prog_val < 100:
+                prog_val = round((runner.COMPLETE_TASKS/runner.TOTAL_TASKS)*100)
+            thread.join
             df = update_df()
             if df.empty:
                 is_no_result = True
@@ -607,6 +616,14 @@ def run_backend(n_clicks, value, start_date, end_date):
     return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
 
+@app.callback([
+    Output('progress', 'value'),
+    Input('progress-interval', 'n_intervals')
+])
+
+def update_progress(n):
+    n = prog_val
+    return n
 
 if __name__ == '__main__':
     app.run_server(debug=True, threaded=True)
