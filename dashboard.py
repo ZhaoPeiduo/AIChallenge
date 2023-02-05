@@ -1,9 +1,10 @@
-import os.path
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import dash
 from dash import html
 from dash import dcc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from datetime import date
 import datetime as dt
@@ -46,10 +47,7 @@ def update_df():
 df = update_df()
 
 def get_data():
-    global df, comments, likes, retweets
-    df = pd.read_csv('outputs/data.csv')
-    df["date"] = pd.to_datetime(df["date"]).dt.date
-    df = df.sort_values(by='date', ascending=False)
+    global comments, likes, retweets
     comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
@@ -291,7 +289,8 @@ sidebar = html.Div(
                     'background-color': '#BEB5B4',
                     'border-radius': '25px',
                     'text-align': 'center',
-                    'position': 'relative'}
+                    'position': 'relative'},
+                n_clicks=-1
             )
             ,
         ]),
@@ -329,6 +328,15 @@ sidebar = html.Div(
 #####################
 
 contents = html.Div([
+    dbc.Modal(
+        [
+            dbc.ModalHeader(dbc.ModalTitle("Search Failed")),
+            dbc.ModalBody("The model cannot analyse the sentiments of the tweets in the given keyword and time period, please try again")
+        ],
+        id="modal_no_result",
+        size="lg",
+        is_open=False,
+    ),
     html.H4("Sentiment Analysis of Tweets"),
     dbc.Row([
         dbc.Col([
@@ -456,19 +464,25 @@ def update_recs(value):
 
     return tweet1, details1, tweet2, details2, tweet3, details3
 
-@app.callback([
-    Output("placeholder", 'children'),
-    Output('likes', 'figure'),
-    Output('comments', 'figure'),
-    Output('retweets', 'figure'),
-    Output('num_tweets', 'figure'),
-    Output('score by day', 'figure'),
-    Output('piechart', 'figure')],
-    [Input('search_button', 'n_clicks'),
-    Input('search-bar', 'value'),
-    Input('calendar', 'start_date'),
-    Input('calendar', 'end_date')
-])
+@app.callback(
+    [Output("placeholder", 'children'),
+     Output('likes', 'figure'),
+     Output('comments', 'figure'),
+     Output('retweets', 'figure'),
+     Output('num_tweets', 'figure'),
+     Output('score by day', 'figure'),
+     Output('piechart', 'figure'),
+     Output('tweet-rec', 'value'),
+     Output('modal_no_result', 'is_open')],
+    [Input('search_button', 'n_clicks')],
+    [State('search-bar', 'value'),
+     State('calendar', 'start_date'),
+     State('calendar', 'end_date')],
+
+    running=[
+        (Output("search_button", "disabled"), True, False),
+    ]
+)
 def run_backend(n_clicks, value, start_date, end_date):
     global cur, change, df
     df = update_df()
@@ -478,29 +492,30 @@ def run_backend(n_clicks, value, start_date, end_date):
     temp_numtweets = subplots('num_tweets')
     temp_scorebyday = score_by_day()
     temp_pie = piechart()
+    is_no_result = False
 
-    if start_date is not None and end_date is not None:
-        change['start']=datetime.strptime(start_date, "%Y-%m-%d")
-        change['end']=datetime.strptime(end_date, "%Y-%m-%d")
-        change['keyword']=value
-        if n_clicks:
-            # n_clicks=0
-            if cur!=change:
-                cur=change
-                runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
-                runner()  # Call the __call__ method
-                get_data()
-                temp_likes = subplots('likes')
-                temp_comments = subplots('comments')
-                temp_retweets = subplots('retweets')
-                temp_numtweets = subplots('num_tweets')
-                temp_scorebyday = score_by_day()
-                temp_pie = piechart()
+    if value is not None and start_date is not None and end_date is not None:
+        change['start'] = datetime.strptime(start_date, "%Y-%m-%d")
+        change['end'] = datetime.strptime(end_date, "%Y-%m-%d")
+        change['keyword'] = value
+        if cur != change:
+            cur = change
+            runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
+            runner()  # Call the __call__ method
+            df = update_df()
+            if df.empty:
+                is_no_result = True
+            get_data()
+            temp_likes = subplots('likes')
+            temp_comments = subplots('comments')
+            temp_retweets = subplots('retweets')
+            temp_numtweets = subplots('num_tweets')
+            temp_scorebyday = score_by_day()
+            temp_pie = piechart()
 
-    print("exiting caller...", start_date, end_date)
-    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie
+    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", is_no_result
 
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, threaded=True)

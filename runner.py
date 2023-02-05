@@ -1,5 +1,5 @@
 import csv
-import os.path
+import os
 import threading
 
 from Models import sgnlp_pipeline
@@ -26,15 +26,11 @@ class Runner:
     TOTAL_TASKS = 0
 
     def __init__(self, start: datetime, end: datetime, word: str, limit: int, driver_type: str):
-        Runner.COMPLETE_TASKS = 0
-        Runner.TOTAL_TASKS = 0
         self._start = start
         self._end = end
         self._word = word
         self._limit = limit
         self._driver_type = driver_type
-        self.success_count = 0
-        self.fail_count = 0
 
     def __call__(self):
         # Silent debug info
@@ -42,12 +38,19 @@ class Runner:
         logging.getLogger("selenium").setLevel(logging.WARNING)
         return self.run()
 
+    def update_args(self,  start: datetime, end: datetime, word: str, limit: int, driver_type: str):
+        Runner.COMPLETE_TASKS = 0
+        Runner.TOTAL_TASKS = 0
+        self._start = start
+        self._end = end
+        self._word = word
+        self._limit = limit
+        self._driver_type = driver_type
+
     def producer(self, product_queue: queue.Queue, input_dict: Dict, driver_type: str) -> None:
-        # print("producer called!", flush=True)
         scraper.search_by_words(product_queue, input_dict, driver_type)
 
     def consumer(self, product_queue: queue.Queue, result_queue: queue.Queue, word: str) -> None:
-        # print("consumer called!", flush=True)
         # Standardise input word to lower case
 
         word = word.lower()
@@ -91,10 +94,9 @@ class Runner:
                         tweet[pos] = 0
                     tweet[pos] = int(tweet[pos])
                 result_queue.put(tweet)
-                self.success_count += 1
             except RuntimeError:
-                print(f"{tweet_text} cannot be processed")
-                self.fail_count += 1
+                # print(f"{tweet_text} cannot be processed")
+                continue
 
     def reformat_input(self, original_tweet: str, word: str) -> str:
         index = original_tweet.lower().find(word)
@@ -159,7 +161,7 @@ class Runner:
 
         def update_progress(future):
             Runner.COMPLETE_TASKS += 1
-            print(f"current progress: {Runner.COMPLETE_TASKS/ Runner.TOTAL_TASKS}")
+            print(f"current progress: {Runner.COMPLETE_TASKS, Runner.TOTAL_TASKS}")
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for input_dictionary in input_dictionaries:
@@ -175,14 +177,3 @@ class Runner:
                 for row in evaluation_results:
                     writer.writerow(row)
         print("exiting runner...")
-
-
-# if __name__ == '__main__':
-#     start = time.time()
-#     # Silent debug info
-#     logging.getLogger("urllib3").setLevel(logging.WARNING)
-#     logging.getLogger("selenium").setLevel(logging.WARNING)
-#     result = self.run(5, "covid", 40)
-#     print(result, len(result))
-#     end = time.time()
-#     print(f"Total time taken for scraping 5 days: {end - start}")
