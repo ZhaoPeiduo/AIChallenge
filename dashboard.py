@@ -552,7 +552,8 @@ def update_recs(value):
 
 
 @app.callback(
-    [Output("placeholder", 'children'),
+    [Output('search_button', 'n_clicks'),
+     Output("placeholder", 'children'),
      Output('likes', 'figure'),
      Output('comments', 'figure'),
      Output('retweets', 'figure'),
@@ -602,9 +603,10 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_pie = piechart()
             temp_msg = get_most_frequent_words()
             msg = temp_msg
+    print(n_clicks)
 
     print("return from call backend")
-    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
+    return None, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
 
 
