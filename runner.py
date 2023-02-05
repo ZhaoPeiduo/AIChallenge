@@ -148,6 +148,8 @@ class Runner:
         product_queue = queue.Queue()
         result_queue = queue.Queue()
         print(input_dictionaries)
+
+        # TODO: For debugging purpose, if you find the search page freeze with no errors raised, please comment out line 157 to 166 and remove comments for 153 to 155 and run runner_usage_example.py to see the errors.
         # self.producer(product_queue, input_dict=input_dictionaries[2], driver_type="chrome")
         # print(len(product_queue.queue))
         # self.consumer(product_queue, result_queue, self._word)
