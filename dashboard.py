@@ -594,14 +594,12 @@ def run_backend(n_clicks, value, start_date, end_date):
     if computing:
         return True, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
-    print("ok until here", flush=True)
     if value is not None and start_date is not None and end_date is not None:
         change['start'] = datetime.strptime(start_date, "%Y-%m-%d")
         change['end'] = datetime.strptime(end_date, "%Y-%m-%d")
         change['keyword'] = value
         if cur != change:
             cur = change.copy()
-            print("searching...", flush=True)
             computing = True
             runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             runner()  # Call the __call__ method
@@ -617,11 +615,6 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_pie = piechart()
             temp_msg = get_most_frequent_words()
             msg = temp_msg
-        else:
-            print("No change since last search", flush=True)
-            print(cur)
-            print(change)
-    print(n_clicks, "return from call backend", f"computing is: {computing}", flush=True)
     computing = False
     return False, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
