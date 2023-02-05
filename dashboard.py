@@ -62,14 +62,16 @@ card = dbc.Card(
                 html.Div([
                     html.H4("# 1"),
                     html.Main(id = "tweet-1", children = [comments["text"][0]], style = {"font-size": "18px"}),
+                    html.P(id = "details_link1", children = ["Link: {}".format(comments["tweetURL"][0])], style = {"font-size": "14px"}),
                     html.P(id = "details-1", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][0], comments["likes"][0], comments["retweets"][0], comments["date"][0])
-                    ], style = {"font-size": "10px"}),
+                    ], style = {"font-size": "10px"})
                 ], className="card-text",),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 2"),
                     html.Main(id = "tweet-2", children = [comments["text"][1]], style = {"font-size": "18px"}),
+                    html.P(id = "details_link2", children = ["Link: {}".format(comments["tweetURL"][1])], style = {"font-size": "14px"}),
                     html.P(id = "details-2", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][1], comments["likes"][1], comments["retweets"][1], comments["date"][1])
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
@@ -78,13 +80,14 @@ card = dbc.Card(
                 html.Div([
                     html.H4("# 3"),
                     html.Main(id = "tweet-3", children = [comments["text"][2]], style = {"font-size": "18px"}),
+                    html.P(id = "details_link3", children = ["Link: {}".format(comments["tweetURL"][2])], style = {"font-size": "14px"}),
                     html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][2], comments["likes"][2], comments["retweets"][2], comments["date"][2])
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
             ]
         ),
     ],
-    style={"width": "25rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
+    style={"width": "55rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
 )
 
 ####################
