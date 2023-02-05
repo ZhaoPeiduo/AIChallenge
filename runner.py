@@ -68,7 +68,7 @@ class Runner:
             # Change to the exact word for the model to work
             if word not in tweet_text.lower():
                 #  and word.replace(" ", "") not in tweet_text.lower()
-                print(tweet_text)
+                # print(tweet_text)
                 continue
             elif tweet_text.find(word) == -1:
                 # print(f"{tweet_text} to be modified", flush=True)
@@ -163,10 +163,10 @@ class Runner:
                 cfuture.add_done_callback(update_progress)
                 Runner.TOTAL_TASKS += 1
         evaluation_results = list(result_queue.queue)
-        # csv_writer_lock = threading.Lock()
-        # with csv_writer_lock:
-        with open(CSV_PATH, 'a', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            for row in evaluation_results:
-                writer.writerow(row)
+        csv_writer_lock = threading.Lock()
+        with csv_writer_lock:
+            with open(CSV_PATH, 'a', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                for row in evaluation_results:
+                    writer.writerow(row)
         print("exiting runner...")
