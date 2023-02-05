@@ -96,6 +96,7 @@ def get_most_frequent_words():
 
         for i in range(len(most_frequent_words)):
             if i > 3:
+                msg = msg[:-1]
                 break
             msg += most_frequent_words[i]
             msg += ","
@@ -505,10 +506,13 @@ app.layout = dbc.Row([
 
 @app.callback([
     Output('tweet-1', 'children'),
+    Output('details_link1', 'children'),
     Output('details-1', 'children'),
     Output('tweet-2', 'children'),
+    Output('details_link2', 'children'),
     Output('details-2', 'children'),
     Output('tweet-3', 'children'),
+    Output('details_link3', 'children'),
     Output('details-3', 'children'),
 ], [Input('tweet-rec', 'value')])
 def update_recs(value):
@@ -523,27 +527,32 @@ def update_recs(value):
         data = retweets
 
     null_tweet = "No post yet..."
+    null_link = "No link yet..."
     null_message = "No details yet..."
 
     tweet1 = tweet2 = tweet3 = null_tweet
+    details_link1 = details_link2 = details_link3 = null_link
     details1 = details2 = details3 = null_message
 
     if df.size >= 1:
         tweet1 = data["text"][0]
+        details_link1 = "Link: {}".format(comments["tweetURL"][0])
         details1 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
             data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
 
     if df.size >= 2:
         tweet2 = data["text"][1]
+        details_link2 = "Link: {}".format(comments["tweetURL"][1])
         details2 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
             data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
 
     if df.size >= 3:
         tweet3 = data["text"][2]
+        details_link3 = "Link: {}".format(comments["tweetURL"][2])
         details3 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
             data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
-    return tweet1, details1, tweet2, details2, tweet3, details3
+    return tweet1, details_link1, details1, tweet2, details_link2, details2, tweet3, details_link3, details3
 
 computing = False
 
@@ -559,7 +568,6 @@ computing = False
      Output('tweet-rec', 'value'),
      Output('hashtag_msg', 'children'),
      Output('modal_no_result', 'is_open'),
-     #Output('timer', 'disabled')
      ],
     [Input('search_button', 'n_clicks')],
     [State('search-bar', 'value'),
@@ -579,16 +587,12 @@ def run_backend(n_clicks, value, start_date, end_date):
     if computing:
         return True, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
-           #, False
-    print("ok until here", flush=True)
     if value is not None and start_date is not None and end_date is not None:
-        print("Passed checks..", flush=True)
         change['start'] = datetime.strptime(start_date, "%Y-%m-%d")
         change['end'] = datetime.strptime(end_date, "%Y-%m-%d")
         change['keyword'] = value
         if cur != change:
             cur = change
-            print("searching...", flush=True)
             computing = True
             runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             runner()  # Call the __call__ method
@@ -604,7 +608,6 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_pie = piechart()
             temp_msg = get_most_frequent_words()
             msg = temp_msg
-    print(n_clicks, "return from call backend", flush=True)
     computing = False
     return False, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
