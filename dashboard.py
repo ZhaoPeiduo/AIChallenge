@@ -46,7 +46,7 @@ prog_val = 0
 ####################
 
 def update_df():
-    new_df = pd.read_csv('outputs/data.csv')
+    new_df = pd.read_csv(os.path.join(os.path.join(os.curdir, "outputs"), "data.csv"))
     new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
     new_df = new_df.sort_values(by='date', ascending=False)
     return new_df
