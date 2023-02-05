@@ -1,4 +1,5 @@
 import os
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import dash
@@ -19,8 +20,6 @@ from runner import Runner
 import itertools
 from collections import Counter
 
-
-
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 output_dir = os.path.join(os.curdir, "outputs")
@@ -34,8 +33,9 @@ with open(csv_file, 'w') as f:
 ####################
 # GLOBAL VAR       #
 ####################
-cur = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"chatgpt"}
-change = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"chatgpt"}
+cur = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
+change = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
+
 
 ####################
 # DATA IMPORT      #
@@ -47,36 +47,61 @@ def update_df():
     new_df = new_df.sort_values(by='date', ascending=False)
     return new_df
 
+
 df = update_df()
+
 
 def get_data():
     global df, comments, likes, retweets
-    comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+    comments = df.sort_values(by="comments", ascending=False).head(3)[
+        ["date", "comments", "retweets", "likes", "text"]].reset_index()
+    likes = df.sort_values(by="likes", ascending=False).head(3)[
+        ["date", "comments", "retweets", "likes", "text"]].reset_index()
+    retweets = df.sort_values(by="retweets", ascending=False).head(3)[
+        ["date", "comments", "retweets", "likes", "text"]].reset_index()
 
 
 ####################
-# hashtags     #
+# hashtags         #
 ####################
+
 # Define a function to extract hashtags from each sentence
 def extract_hashtags(sentence):
     hashtags = [word.split("#")[1].split()[0] for word in sentence.split() if "#" in word]
     return hashtags
 
-# Apply the function to the 'sentences' column
-df['hashtags'] = df['text'].apply(extract_hashtags)
-df = df[df['hashtags'].apply(lambda x: len(x) > 0)]
-flattened_words_list = list(itertools.chain(*df['hashtags'].values))
 
-# Get the frequency of each word
-word_frequency = dict(Counter(flattened_words_list))
+def get_most_frequent_words():
+    global df
+    msg = 'No popular hashtag'
+    if df.empty:
+        return msg
 
-# Get the 3 most frequent words
-most_frequent_words = [word for word, frequency in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:3]]
+    hash_col = df['text'].copy()
+    # Apply the function to the 'sentences' column
+    hash_col = hash_col.apply(extract_hashtags)
+    hash_col = hash_col[hash_col.apply(lambda x: len(x) > 0)]
+    flattened_words_list = list(itertools.chain(*hash_col.values))
+
+    # Get the frequency of each word
+    word_frequency = dict(Counter(flattened_words_list))
+
+    # Get most frequent words
+    most_frequent_words = [word for word, frequency in
+                           sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:3]]
+    if len(most_frequent_words) > 0:
+        msg = "Top hashtags :"
+
+        for i in range(len(most_frequent_words)):
+            if i > 3:
+                break
+            msg += most_frequent_words[i]
+            msg += ","
+
+    return msg
 
 
-
+msg = get_most_frequent_words()
 
 ####################
 # Code for recs   #
@@ -90,63 +115,76 @@ if not df.empty:
     comments = comments.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     likes = likes.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    
+
 card = dbc.Card(
     [
         dbc.CardBody(
             [
                 html.H4("Trending Posts", className="card-title"),
-                dcc.Dropdown(id = "tweet-rec",
-                    options = [
-                        {'label': 'By Comments', 'value': 'By Comments'},
-                        {'label': 'By Likes', 'value': 'By Likes'},
-                        {'label': 'By Retweets', 'value': 'By Retweets'}
-                    ],
-                    value='By Comments'
-                ),
+                dcc.Dropdown(id="tweet-rec",
+                             options=[
+                                 {'label': 'By Comments', 'value': 'By Comments'},
+                                 {'label': 'By Likes', 'value': 'By Likes'},
+                                 {'label': 'By Retweets', 'value': 'By Retweets'}
+                             ],
+                             value='By Comments'
+                             ),
                 html.Br(),
                 html.Div([
                     html.H4("# 1"),
-                    html.Main(id = "tweet-1", children = [comments["text"][0] if not comments.empty else ""], style = {"font-size": "18px"}),
-                    html.P(id = "details_link1", children = ["Link: {}".format(comments["tweetURL"][0] if not comments.empty else "")], style = {"font-size": "14px"}),
-                    html.P(id = "details-1", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                            .format(comments["comments"][0] if not comments.empty else 0, 
-                                    comments["likes"][0] if not comments.empty else 0, 
-                                    comments["retweets"][0] if not comments.empty else 0, 
-                                    comments["date"][0] if not comments.empty else 0)
-                    ], style = {"font-size": "10px"})
-                ], className="card-text",),
+                    html.Main(id="tweet-1", children=[comments["text"][0] if not comments.empty else ""],
+                              style={"font-size": "18px"}),
+                    html.P(id="details_link1",
+                           children=["Link: {}".format(comments["tweetURL"][0] if not comments.empty else "")],
+                           style={"font-size": "14px"}),
+                    html.P(id="details-1",
+                           children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
+                           .format(comments["comments"][0] if not comments.empty else 0,
+                                   comments["likes"][0] if not comments.empty else 0,
+                                   comments["retweets"][0] if not comments.empty else 0,
+                                   comments["date"][0] if not comments.empty else 0)
+                                     ], style={"font-size": "10px"})
+                ], className="card-text", ),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 2"),
-                    html.Main(id = "tweet-2", children = [comments["text"][1] if not comments.empty else ""], style = {"font-size": "18px"}),
-                    html.P(id = "details_link2", children = ["Link: {}".format(comments["tweetURL"][1] if not comments.empty else None)], style = {"font-size": "14px"}),
-                    html.P(id = "details-2", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                          .format(comments["comments"][1] if not comments.empty else 0, 
-                                  comments["likes"][1] if not comments.empty else 0, 
-                                  comments["retweets"][1] if not comments.empty else 0, 
-                                  comments["date"][1] if not comments.empty else 0)
-                    ], style = {"font-size": "10px"}),
-                ], className="card-text",),
+                    html.Main(id="tweet-2", children=[comments["text"][1] if not comments.empty else ""],
+                              style={"font-size": "18px"}),
+                    html.P(id="details_link2",
+                           children=["Link: {}".format(comments["tweetURL"][1] if not comments.empty else "")],
+                           style={"font-size": "14px"}),
+                    html.P(id="details-2",
+                           children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
+                           .format(comments["comments"][1] if not comments.empty else 0,
+                                   comments["likes"][1] if not comments.empty else 0,
+                                   comments["retweets"][1] if not comments.empty else 0,
+                                   comments["date"][1] if not comments.empty else 0)
+                                     ], style={"font-size": "10px"}),
+                ], className="card-text", ),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 3"),
-                    html.Main(id = "tweet-3", children = [comments["text"][2] if not comments.empty else ""], style = {"font-size": "18px"}),
-                    html.P(id = "details_link3", children = ["Link: {}".format(comments["tweetURL"][2])], style = {"font-size": "14px"}),
-                    html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                          .format(comments["comments"][2] if not comments.empty else 0,
-                                  comments["likes"][2] if not comments.empty else 0,
-                                  comments["retweets"][2] if not comments.empty else 0,
-                                  comments["date"][2] if not comments.empty else 0)
-                    ], style = {"font-size": "10px"}),
-                ], className="card-text",),
+                    html.Main(id="tweet-3", children=[comments["text"][2] if not comments.empty else ""],
+                              style={"font-size": "18px"}),
+                    html.P(id="details_link3",
+                           children=["Link: {}".format(comments["tweetURL"][2] if not comments.empty else "")],
+                           style={"font-size": "14px"}),
+                    html.P(id="details-3",
+                           children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
+                           .format(comments["comments"][2] if not comments.empty else 0,
+                                   comments["likes"][2] if not comments.empty else 0,
+                                   comments["retweets"][2] if not comments.empty else 0,
+                                   comments["date"][2] if not comments.empty else 0)
+                                     ], style={"font-size": "10px"}),
+                ], className="card-text", ),
             ]
         ),
     ],
     style={"width": "55rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
 )
+
 
 ####################
 # Word Cloud     #
@@ -156,7 +194,7 @@ def plot_cloud(wordcloud):
     # Set figure size
     plt.figure(figsize=(40, 30))
     # Display image
-    plt.imshow(wordcloud) 
+    plt.imshow(wordcloud)
     # No axis details
     plt.axis("off")
 
@@ -173,6 +211,8 @@ def apply_standard_layout(fig):
             color="#7f7f7f"  # specify font color
         )
     )
+
+
 ####################
 # Graph functions  #
 ####################
@@ -198,10 +238,10 @@ def score_by_day():
 
 def piechart():
     df_byscore = pd.DataFrame(df.groupby("score").size()).reset_index()
-    df_byscore = df_byscore.replace([-1,0,1],['negative','neutral','positive'])
+    df_byscore = df_byscore.replace([-1, 0, 1], ['negative', 'neutral', 'positive'])
     df_byscore.columns = ['score', 'count']
     pie_chart = px.pie(df_byscore, values='count', names="score", hole=.3,
-                       color_discrete_sequence=['#8B6B62', '#9E836F', '#8F7C6B'], 
+                       color_discrete_sequence=['#8B6B62', '#9E836F', '#8F7C6B'],
                        template="plotly_white")
     pie_chart.update_layout(paper_bgcolor='rgb(250,250,250)')
     pie_chart.update_layout(
@@ -215,25 +255,32 @@ def piechart():
 
     return pie_chart
 
+
 '''
 For easy sketching of the graph, input = "comments", "likes", "retweets" or "num_tweets",
 returning x, y (series for plotting), and the tally sum
  '''
+
+
 def df_by_date(property_str):
     if property_str == "num_tweets":
         daily_df = pd.DataFrame(df.groupby(['date']).size()).reset_index()
     else:
         daily_df = pd.DataFrame(df.groupby(['date'])[property_str].sum()).reset_index()
     daily_df.columns = ['date', property_str]
-    daily_df['date']= pd.DatetimeIndex(daily_df.date).strftime("%Y-%m-%d")
+    daily_df['date'] = pd.DatetimeIndex(daily_df.date).strftime("%Y-%m-%d")
     num = daily_df[property_str].sum()
     return daily_df, num
+
+
 '''
 Creating the top 4 small graphs using the x, y and num returned from df_by_date function
 '''
+
+
 def subplots(property_str):
     # Create the text and graph
-    df, num=df_by_date(property_str)
+    df, num = df_by_date(property_str)
 
     # text = go.Scatter(x=[0], y=[0], mode='text', text=[f"{num}"], textfont={'size': 30},
     #                   textposition="middle center")
@@ -246,8 +293,7 @@ def subplots(property_str):
 
     fig = go.Figure()
     fig.add_trace(graph)
-    fig.add_annotation(x='50%',y='50%',text=f"{num:,d}",showarrow=False)
-
+    fig.add_annotation(x='50%', y='50%', text=f"{num:,d}", showarrow=False)
 
     # Update the layout
     fig.update_layout(
@@ -255,8 +301,8 @@ def subplots(property_str):
         showlegend=False,
         paper_bgcolor='#F0EFEF',
         plot_bgcolor='#F0EFEF',
-        height = 100,
-        width = 200,
+        height=100,
+        width=200,
         margin=dict(l=0, r=0, b=0, t=0)
     )
     fig.update_xaxes(type="category")
@@ -267,7 +313,6 @@ def subplots(property_str):
 
     # Change the hoverlabel
     # fig.update_traces(hoverlabel=dict{
-
 
     # })
 
@@ -296,12 +341,12 @@ sidebar = html.Div(
         html.Div(children=[
             html.H5('Search Keyword'),
             html.Br(),
-            dcc.Input(id='search-bar', placeholder='chatgpt', style={'display':'inline'}),
+            dcc.Input(id='search-bar', placeholder='chatgpt', style={'display': 'inline'}),
             html.Span("  "),
             html.Button(
                 id='search_button',
                 children=[
-                    html.Img(id="search_img",src=app.get_asset_url('search-48.png'), style={'display':'inline'}),
+                    html.Img(id="search_img", src=app.get_asset_url('search-48.png'), style={'display': 'inline'}),
                 ],
                 style={
                     'display': 'inline-block',
@@ -328,14 +373,14 @@ sidebar = html.Div(
             html.H6('Date'),
             dcc.DatePickerRange(
                 id="calendar",
-                #min_date_allowed=date.today() - dt.timedelta(days=14),
+                # min_date_allowed=date.today() - dt.timedelta(days=14),
                 # start_date_placeholder_text="Start Period",
                 # end_date_placeholder_text="End Period",
                 calendar_orientation='vertical',
-                #max_date_allowed=date.today(),
+                # max_date_allowed=date.today(),
                 initial_visible_month=datetime(2023, 1, 1),
-                #start_date=datetime(2023, 1, 20),
-                #end_date=datetime(2023, 2, 4),
+                # start_date=datetime(2023, 1, 20),
+                # end_date=datetime(2023, 2, 4),
                 stay_open_on_select=True
             ),
         ]),
@@ -343,7 +388,6 @@ sidebar = html.Div(
     ],
     style=SIDEBAR_STYLE
 )
-
 
 #####################
 # Main contents     #
@@ -353,7 +397,8 @@ contents = html.Div([
     dbc.Modal(
         [
             dbc.ModalHeader(dbc.ModalTitle("Search Failed")),
-            dbc.ModalBody("The model cannot analyse the sentiments of the tweets in the given keyword and time period, please try again")
+            dbc.ModalBody(
+                "The model cannot analyse the sentiments of the tweets in the given keyword and time period, please try again")
         ],
         id="modal_no_result",
         size="lg",
@@ -364,39 +409,44 @@ contents = html.Div([
         dbc.Col([
             html.Div([
                 html.Br(),
-                dcc.Graph(id='likes',figure= subplots('likes'), 
+                dcc.Graph(id='likes', figure=subplots('likes'),
                           config={'displayModeBar': False}),
-                html.Img(id="likes_img",src=app.get_asset_url('favorite-24.png'), style={'display':'inline'}),
-                html.P("  Total number of likes by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
+                html.Img(id="likes_img", src=app.get_asset_url('favorite-24.png'), style={'display': 'inline'}),
+                html.P("  Total number of likes by date",
+                       style={'textAlign': 'center', 'font-size': '10px', 'display': 'inline'})
             ])
         ]),
         dbc.Col([
             html.Div([
                 html.Br(),
                 dcc.Graph(id='comments', figure=subplots('comments'),
-                config={'displayModeBar': False}),
-                html.Img(id="comments_img",src=app.get_asset_url('comments-24.png'), style={'display':'inline'}),
-                html.P("  Total number of comments by date", style={'textAlign': 'center', 'font-size':'10px', 'display':'inline'})
+                          config={'displayModeBar': False}),
+                html.Img(id="comments_img", src=app.get_asset_url('comments-24.png'), style={'display': 'inline'}),
+                html.P("  Total number of comments by date",
+                       style={'textAlign': 'center', 'font-size': '10px', 'display': 'inline'})
             ])
         ]),
         dbc.Col([
             html.Div([
                 html.Br(),
                 dcc.Graph(id='retweets', figure=subplots('retweets'),
-                config={'displayModeBar': False}),
-                html.Img(id="retweets_img",src=app.get_asset_url('retweet-24.png'), style={'display':'inline'}),
-                html.P("  Total number of retweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
+                          config={'displayModeBar': False}),
+                html.Img(id="retweets_img", src=app.get_asset_url('retweet-24.png'), style={'display': 'inline'}),
+                html.P("  Total number of retweets by date",
+                       style={'textAlign': 'center', 'font-size': '10px', 'display': 'inline'})
             ])
         ]),
         dbc.Col([
             html.Div([
                 html.Br(),
                 dcc.Graph(id="num_tweets", figure=subplots('num_tweets'),
-                config={'displayModeBar': False}),
-                html.Img(id="tweets_img",src=app.get_asset_url('twitter-30.png'), style={'display':'inline', 'height':'25px','width':'25px'}),
-                html.P("  Total number of tweets by date", style={'textAlign': 'center', 'font-size':'10px','display':'inline'})
+                          config={'displayModeBar': False}),
+                html.Img(id="tweets_img", src=app.get_asset_url('twitter-30.png'),
+                         style={'display': 'inline', 'height': '25px', 'width': '25px'}),
+                html.P("  Total number of tweets by date",
+                       style={'textAlign': 'center', 'font-size': '10px', 'display': 'inline'})
             ])
-            
+
         ])
 
     ]),
@@ -427,11 +477,12 @@ contents = html.Div([
     html.Br(),
     dbc.Row([
         html.Div([
-            html.Img(id="hashtag_img",src=app.get_asset_url('hashtag.png'), style={'display':'inline', 'width':'25px', 'height':'25px'}),
-            html.Span("  Top hashtags : {}".format(', '.join(most_frequent_words)) if not len(most_frequent_words) <3 else 'No popular hashtag', style={'style':'inline', 'font-size':'25px'})
-            ],
-            )
-        ]),
+            html.Img(id="hashtag_img", src=app.get_asset_url('hashtag.png'),
+                     style={'display': 'inline', 'width': '25px', 'height': '25px'}),
+            html.H4(id="hashtag_msg", style={'style': 'inline', 'font-size': '25px'})
+        ],
+        )
+    ]),
     html.Br(),
     html.Br(),
     dbc.Row([
@@ -456,6 +507,7 @@ app.layout = dbc.Row([
     ], width=8)
 ])
 
+
 @app.callback([
     Output('tweet-1', 'children'),
     Output('details-1', 'children'),
@@ -464,7 +516,6 @@ app.layout = dbc.Row([
     Output('tweet-3', 'children'),
     Output('details-3', 'children'),
 ], [Input('tweet-rec', 'value')])
-
 def update_recs(value):
     global df
     df = update_df()
@@ -484,17 +535,21 @@ def update_recs(value):
 
     if df.size >= 1:
         tweet1 = data["text"][0]
-        details1 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
+        details1 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
+            data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
 
     if df.size >= 2:
         tweet2 = data["text"][1]
-        details2 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
+        details2 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
+            data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
 
     if df.size >= 3:
         tweet3 = data["text"][2]
-        details3 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
+        details3 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
+            data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
     return tweet1, details1, tweet2, details2, tweet3, details3
+
 
 @app.callback(
     [Output("placeholder", 'children'),
@@ -505,6 +560,7 @@ def update_recs(value):
      Output('score by day', 'figure'),
      Output('piechart', 'figure'),
      Output('tweet-rec', 'value'),
+     Output('hashtag_msg', 'children'),
      Output('modal_no_result', 'is_open')],
     [Input('search_button', 'n_clicks')],
     [State('search-bar', 'value'),
@@ -516,7 +572,7 @@ def update_recs(value):
     ]
 )
 def run_backend(n_clicks, value, start_date, end_date):
-    global cur, change, df
+    global cur, change, df, msg
     temp_likes = subplots('likes')
     temp_comments = subplots('comments')
     temp_retweets = subplots('retweets')
@@ -524,6 +580,7 @@ def run_backend(n_clicks, value, start_date, end_date):
     temp_scorebyday = score_by_day()
     temp_pie = piechart()
     is_no_result = False
+    temp_msg = msg
 
     if value is not None and start_date is not None and end_date is not None:
         change['start'] = datetime.strptime(start_date, "%Y-%m-%d")
@@ -543,9 +600,12 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_numtweets = subplots('num_tweets')
             temp_scorebyday = score_by_day()
             temp_pie = piechart()
+            temp_msg = get_most_frequent_words()
+            msg = temp_msg
 
-    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", is_no_result
-
+    print("return from call backend")
+    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
+           temp_msg, is_no_result
 
 
 if __name__ == '__main__':
