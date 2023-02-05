@@ -170,10 +170,10 @@ class Runner:
                 cfuture.add_done_callback(update_progress)
                 Runner.TOTAL_TASKS += 1
         evaluation_results = list(result_queue.queue)
-        csv_writer_lock = threading.Lock()
-        with csv_writer_lock:
-            with open(CSV_PATH, 'a', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                for row in evaluation_results:
-                    writer.writerow(row)
+        # csv_writer_lock = threading.Lock()
+        # with csv_writer_lock:
+        with open(CSV_PATH, 'a', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            for row in evaluation_results:
+                writer.writerow(row)
         print("exiting runner...")

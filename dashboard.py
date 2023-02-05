@@ -47,7 +47,7 @@ def update_df():
 df = update_df()
 
 def get_data():
-    global comments, likes, retweets
+    global df, comments, likes, retweets
     comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
@@ -485,7 +485,6 @@ def update_recs(value):
 )
 def run_backend(n_clicks, value, start_date, end_date):
     global cur, change, df
-    df = update_df()
     temp_likes = subplots('likes')
     temp_comments = subplots('comments')
     temp_retweets = subplots('retweets')
