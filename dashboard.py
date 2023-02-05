@@ -20,6 +20,7 @@ from runner import Runner
 import itertools
 from collections import Counter
 import threading
+import time
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
@@ -613,6 +614,7 @@ def run_backend(n_clicks, value, start_date, end_date):
             #runner()  # Call the __call__ method
             while prog_val < 100:
                 prog_val = round((runner.COMPLETE_TASKS/runner.TOTAL_TASKS)*100)
+                time.sleep(1)
             thread.join
             df = update_df()
             if df.empty:
