@@ -60,7 +60,7 @@ def scrape(queue, since, until=None, words=None, to_account=None, from_account=N
         last_position = driver.execute_script("return window.pageYOffset;")
         # should we keep scrolling ?
         scrolling = True
-        print("looking for tweets between " + str(since) + " and " + str(until_local) + " ...")
+        # print("looking for tweets between " + str(since) + " and " + str(until_local) + " ...")
         # print(" path : {}".format(path))
         # number of tweets parsed
         tweet_parsed = 0

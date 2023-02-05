@@ -23,13 +23,15 @@ import threading
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
-output_dir = os.path.join(os.curdir, "outputs")
-if not os.path.exists(output_dir):
-    os.mkdir(output_dir)
 
-csv_file = os.path.join(output_dir, "data.csv")
-with open(csv_file, 'w') as f:
-    f.write("userScreenName,userName,date,text,comments,likes,retweets,tweetURL,score")
+def initialize_file():
+    output_dir = os.path.join(os.curdir, "outputs")
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    csv_file = os.path.join(output_dir, "data.csv")
+    with open(csv_file, 'w') as f:
+        f.write("userScreenName,userName,date,text,comments,likes,retweets,tweetURL,score")
 
 ####################
 # GLOBAL VAR       #
@@ -49,18 +51,25 @@ def update_df():
     return new_df
 
 
-df = update_df()
-
-
 def get_data():
     global df, comments, likes, retweets
-    comments = df.sort_values(by="comments", ascending=False).head(3)[
-        ["date", "comments", "retweets", "likes", "text"]].reset_index()
-    likes = df.sort_values(by="likes", ascending=False).head(3)[
-        ["date", "comments", "retweets", "likes", "text"]].reset_index()
-    retweets = df.sort_values(by="retweets", ascending=False).head(3)[
-        ["date", "comments", "retweets", "likes", "text"]].reset_index()
+    comments = df.sort_values(by="comments", ascending=False)
+    likes = df.sort_values(by="likes", ascending=False)
+    retweets = df.sort_values(by="retweets", ascending=False)
 
+    if df.size >= 3:
+        comments = comments.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+        likes = likes.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+        retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+    else:
+        comments = comments.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+        likes = likes.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+        retweets = retweets.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+
+
+df = update_df()
+comments = likes = retweets = pd.DataFrame()
+get_data()
 
 ####################
 # hashtags         #
@@ -95,6 +104,7 @@ def get_most_frequent_words():
 
         for i in range(len(most_frequent_words)):
             if i > 3:
+                msg = msg[:-1]
                 break
             msg += most_frequent_words[i]
             msg += ","
@@ -107,15 +117,6 @@ msg = get_most_frequent_words()
 ####################
 # Code for recs   #
 ####################
-
-comments = df.sort_values(by="comments", ascending=False)
-likes = df.sort_values(by="likes", ascending=False)
-retweets = df.sort_values(by="retweets", ascending=False)
-
-if not df.empty:
-    comments = comments.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    likes = likes.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
 
 card = dbc.Card(
     [
@@ -133,51 +134,51 @@ card = dbc.Card(
                 html.Br(),
                 html.Div([
                     html.H4("# 1"),
-                    html.Main(id="tweet-1", children=[comments["text"][0] if not comments.empty else ""],
+                    html.Main(id="tweet-1", children=[comments["text"][0] if len(comments.index) >= 1 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link1",
-                           children=["Link: {}".format(comments["tweetURL"][0] if not comments.empty else "")],
+                           children=["Link: {}".format(comments["tweetURL"][0] if len(comments.index) >= 1 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-1",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][0] if not comments.empty else 0,
-                                   comments["likes"][0] if not comments.empty else 0,
-                                   comments["retweets"][0] if not comments.empty else 0,
-                                   comments["date"][0] if not comments.empty else 0)
+                           .format(comments["comments"][0] if len(comments.index) >= 1 else 0,
+                                   comments["likes"][0] if len(comments.index) >= 1 else 0,
+                                   comments["retweets"][0] if len(comments.index) >= 1 else 0,
+                                   comments["date"][0] if len(comments.index) >= 1 else 0)
                                      ], style={"font-size": "10px"})
                 ], className="card-text", ),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 2"),
-                    html.Main(id="tweet-2", children=[comments["text"][1] if not comments.empty else ""],
+                    html.Main(id="tweet-2", children=[comments["text"][1] if len(comments.index) >= 2 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link2",
-                           children=["Link: {}".format(comments["tweetURL"][1] if not comments.empty else "")],
+                           children=["Link: {}".format(comments["tweetURL"][1] if len(comments.index) >= 2 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-2",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][1] if not comments.empty else 0,
-                                   comments["likes"][1] if not comments.empty else 0,
-                                   comments["retweets"][1] if not comments.empty else 0,
-                                   comments["date"][1] if not comments.empty else 0)
+                           .format(comments["comments"][1] if len(comments.index) >= 2 else 0,
+                                   comments["likes"][1] if len(comments.index) >= 2 else 0,
+                                   comments["retweets"][1] if len(comments.index) >= 2 else 0,
+                                   comments["date"][1] if len(comments.index) >= 2 else 0)
                                      ], style={"font-size": "10px"}),
                 ], className="card-text", ),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 3"),
-                    html.Main(id="tweet-3", children=[comments["text"][2] if not comments.empty else ""],
+                    html.Main(id="tweet-3", children=[comments["text"][2] if len(comments.index) >= 3 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link3",
-                           children=["Link: {}".format(comments["tweetURL"][2] if not comments.empty else "")],
+                           children=["Link: {}".format(comments["tweetURL"][2] if len(comments.index) >= 3 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-3",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][2] if not comments.empty else 0,
-                                   comments["likes"][2] if not comments.empty else 0,
-                                   comments["retweets"][2] if not comments.empty else 0,
-                                   comments["date"][2] if not comments.empty else 0)
+                           .format(comments["comments"][2] if len(comments.index) >= 3 else 0,
+                                   comments["likes"][2] if len(comments.index) >= 3 else 0,
+                                   comments["retweets"][2] if len(comments.index) >= 3 else 0,
+                                   comments["date"][2] if len(comments.index) >= 3 else 0)
                                      ], style={"font-size": "10px"}),
                 ], className="card-text", ),
             ]
@@ -359,11 +360,13 @@ sidebar = html.Div(
                     'text-align': 'center',
                     'position': 'relative'},
                 n_clicks=-1
-            )
-            ,
+            ),
+
         ]),
         html.Br(),
-        html.Br(),
+        dbc.Progress(
+            value=50, id="animated-progress", animated=True, striped=True, color="success"
+        ),
         html.Br(),
         html.H5("Please choose a date range"),
 
@@ -511,12 +514,16 @@ app.layout = dbc.Row([
 ])
 
 
+
 @app.callback([
     Output('tweet-1', 'children'),
+    Output('details_link1', 'children'),
     Output('details-1', 'children'),
     Output('tweet-2', 'children'),
+    Output('details_link2', 'children'),
     Output('details-2', 'children'),
     Output('tweet-3', 'children'),
+    Output('details_link3', 'children'),
     Output('details-3', 'children'),
 ], [Input('tweet-rec', 'value')])
 def update_recs(value):
@@ -531,31 +538,38 @@ def update_recs(value):
         data = retweets
 
     null_tweet = "No post yet..."
+    null_link = "No link yet..."
     null_message = "No details yet..."
 
     tweet1 = tweet2 = tweet3 = null_tweet
+    details_link1 = details_link2 = details_link3 = null_link
     details1 = details2 = details3 = null_message
 
     if df.size >= 1:
         tweet1 = data["text"][0]
+        details_link1 = "Link: {}".format(comments["tweetURL"][0])
         details1 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
             data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
 
     if df.size >= 2:
         tweet2 = data["text"][1]
+        details_link2 = "Link: {}".format(comments["tweetURL"][1])
         details2 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
             data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
 
     if df.size >= 3:
         tweet3 = data["text"][2]
+        details_link3 = "Link: {}".format(comments["tweetURL"][2])
         details3 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(
             data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
-    return tweet1, details1, tweet2, details2, tweet3, details3
+    return tweet1, details_link1, details1, tweet2, details_link2, details2, tweet3, details_link3, details3
 
+computing = False
 
 @app.callback(
-    [Output("placeholder", 'children'),
+    [Output("search_button",'disabled'),
+     Output("placeholder", 'children'),
      Output('likes', 'figure'),
      Output('comments', 'figure'),
      Output('retweets', 'figure'),
@@ -570,13 +584,9 @@ def update_recs(value):
     [State('search-bar', 'value'),
      State('calendar', 'start_date'),
      State('calendar', 'end_date')],
-
-    running=[
-        (Output("search_button", "disabled"), True, False),
-    ]
 )
 def run_backend(n_clicks, value, start_date, end_date):
-    global cur, change, df, msg, prog_val
+    global cur, change, df, msg, computing, prog_val
     temp_likes = subplots('likes')
     temp_comments = subplots('comments')
     temp_retweets = subplots('retweets')
@@ -585,13 +595,18 @@ def run_backend(n_clicks, value, start_date, end_date):
     temp_pie = piechart()
     is_no_result = False
     temp_msg = msg
-
+    if computing:
+        return True, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
+           temp_msg, is_no_result
+    print("ok until here", flush=True)
     if value is not None and start_date is not None and end_date is not None:
         change['start'] = datetime.strptime(start_date, "%Y-%m-%d")
         change['end'] = datetime.strptime(end_date, "%Y-%m-%d")
         change['keyword'] = value
         if cur != change:
-            cur = change
+            cur = change.copy()
+            print("searching...", flush=True)
+            computing = True
             runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             thread = threading.Thread(target=runner)
             thread.start()
@@ -612,9 +627,9 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_msg = get_most_frequent_words()
             msg = temp_msg
             prog_val = 0
-
+            computing = False
     print("return from call backend")
-    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
+    return False, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
 
 @app.callback([
@@ -627,4 +642,5 @@ def update_progress(n):
     return n
 
 if __name__ == '__main__':
-    app.run_server(debug=True, threaded=True)
+    initialize_file()
+    app.run_server(debug=True, threaded=False)
