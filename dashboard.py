@@ -19,6 +19,8 @@ from datetime import datetime
 from runner import Runner
 import itertools
 from collections import Counter
+import threading
+import time
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
@@ -37,7 +39,7 @@ def initialize_file():
 ####################
 cur = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
 change = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
-
+prog_val = 0
 
 ####################
 # DATA IMPORT      #
@@ -387,7 +389,9 @@ sidebar = html.Div(
                 stay_open_on_select=True
             ),
         ]),
-        html.Div(id="placeholder", children=[""])
+        html.Div(id="placeholder", children=[""]),
+        dcc.Interval(id="progress-interval", n_intervals=0, interval=1500),
+        dbc.Progress(id="progress", value = 0, max = 100)
     ],
     style=SIDEBAR_STYLE
 )
@@ -575,14 +579,15 @@ computing = False
      Output('piechart', 'figure'),
      Output('tweet-rec', 'value'),
      Output('hashtag_msg', 'children'),
-     Output('modal_no_result', 'is_open')],
+     Output('modal_no_result', 'is_open'),
+    ],
     [Input('search_button', 'n_clicks')],
     [State('search-bar', 'value'),
      State('calendar', 'start_date'),
      State('calendar', 'end_date')],
 )
 def run_backend(n_clicks, value, start_date, end_date):
-    global cur, change, df, msg, computing
+    global cur, change, df, msg, computing, prog_val
     temp_likes = subplots('likes')
     temp_comments = subplots('comments')
     temp_retweets = subplots('retweets')
@@ -602,7 +607,13 @@ def run_backend(n_clicks, value, start_date, end_date):
             cur = change.copy()
             computing = True
             runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
-            runner()  # Call the __call__ method
+            thread = threading.Thread(target=runner)
+            thread.start()
+            #runner()  # Call the __call__ method
+            while prog_val < 100 and runner.TOTAL_TASKS != 0:
+                prog_val = round((runner.COMPLETE_TASKS/runner.TOTAL_TASKS)*100)
+                time.sleep(1)
+            thread.join
             df = update_df()
             if df.empty:
                 is_no_result = True
@@ -615,10 +626,19 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_pie = piechart()
             temp_msg = get_most_frequent_words()
             msg = temp_msg
-    computing = False
+            prog_val = 0
+            computing = False
     return False, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
 
+@app.callback([
+    Output('progress', 'value'),
+    Input('progress-interval', 'n_intervals')
+])
+
+def update_progress(n):
+    n = prog_val
+    return [n]
 
 if __name__ == '__main__':
     initialize_file()
