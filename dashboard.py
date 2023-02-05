@@ -1,10 +1,7 @@
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 import dash
 from dash import html
 from dash import dcc
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from datetime import date
 import datetime as dt
@@ -16,17 +13,12 @@ from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
 from runner import Runner
+import itertools
+from collections import Counter
+
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
-
-output_dir = os.path.join(os.curdir, "outputs")
-if not os.path.exists(output_dir):
-    os.mkdir(output_dir)
-
-csv_file = os.path.join(output_dir, "data.csv")
-with open(csv_file, 'w') as f:
-    f.write("userScreenName,userName,date,text,comments,likes,retweets,tweetURL,score")
 
 ####################
 # GLOBAL VAR       #
@@ -37,40 +29,40 @@ change = {'start':datetime(2023, 1, 20), 'end':datetime(2023, 2, 4),'keyword':"c
 ####################
 # DATA IMPORT      #
 ####################
+df = pd.read_csv('outputs/data.csv')
+df["date"] = pd.to_datetime(df["date"]).dt.date
+df = df.sort_values(by='date', ascending=False)
 
-def update_df():
-    new_df = pd.read_csv('outputs/data.csv')
-    new_df["date"] = pd.to_datetime(new_df["date"]).dt.date
-    new_df = new_df.sort_values(by='date', ascending=False)
-    return new_df
 
-df = update_df()
+####################
+# hashtags     #
+####################
+# Define a function to extract hashtags from each sentence
+def extract_hashtags(sentence):
+    hashtags = [word.split("#")[1].split()[0] for word in sentence.split() if "#" in word]
+    return hashtags
 
-def get_data():
-    global df, comments, likes, retweets
-    comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+# Apply the function to the 'sentences' column
+df['hashtags'] = df['text'].apply(extract_hashtags)
+df = df[df['hashtags'].apply(lambda x: len(x) > 0)]
+flattened_words_list = list(itertools.chain(*df['hashtags'].values))
 
-#inital plan, not based on score yet
-text = df['text']
-str = text.to_string()
-text = df['text']
-type(text)
-usetext = ''.join(text)
+# Get the frequency of each word
+word_frequency = dict(Counter(flattened_words_list))
+
+# Get the 3 most frequent words
+most_frequent_words = [word for word, frequency in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:3]]
+
+
+
 
 ####################
 # Code for recs   #
 ####################
+comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
 
-comments = df.sort_values(by="comments", ascending=False)
-likes = df.sort_values(by="likes", ascending=False)
-retweets = df.sort_values(by="retweets", ascending=False)
-
-if not df.empty:
-    comments = comments.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    likes = likes.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-    retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
 
 card = dbc.Card(
     [
@@ -88,42 +80,33 @@ card = dbc.Card(
                 html.Br(),
                 html.Div([
                     html.H4("# 1"),
-                    html.Main(id = "tweet-1", children = [comments["text"][0] if not comments.empty else ""], style = {"font-size": "18px"}),
-                    html.P(id = "details-1", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][0] if not comments.empty else 0,
-                                   comments["likes"][0] if not comments.empty else 0,
-                                   comments["retweets"][0] if not comments.empty else 0,
-                                   comments["date"][0] if not comments.empty else 0)
-                    ], style = {"font-size": "10px"}),
+                    html.Main(id = "tweet-1", children = [comments["text"][0]], style = {"font-size": "18px"}),
+                    html.P(id = "details_link1", children = ["Link: {}".format(comments["tweetURL"][0])], style = {"font-size": "14px"}),
+                    html.P(id = "details-1", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][0], comments["likes"][0], comments["retweets"][0], comments["date"][0])
+                    ], style = {"font-size": "10px"})
                 ], className="card-text",),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 2"),
-                    html.Main(id = "tweet-2", children = [comments["text"][1]if not comments.empty else None], style = {"font-size": "18px"}),
-                    html.P(id = "details-2", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][1] if not comments.empty else 0,
-                                   comments["likes"][1] if not comments.empty else 0,
-                                   comments["retweets"][1] if not comments.empty else 0,
-                                   comments["date"][1] if not comments.empty else 0)
+                    html.Main(id = "tweet-2", children = [comments["text"][1]], style = {"font-size": "18px"}),
+                    html.P(id = "details_link2", children = ["Link: {}".format(comments["tweetURL"][1])], style = {"font-size": "14px"}),
+                    html.P(id = "details-2", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][1], comments["likes"][1], comments["retweets"][1], comments["date"][1])
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 3"),
-                    html.Main(id = "tweet-3", children = [comments["text"][2] if not comments.empty else None], style = {"font-size": "18px"}),
-                    html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][2] if not comments.empty else 0,
-                                   comments["likes"][2] if not comments.empty else 0,
-                                   comments["retweets"][2] if not comments.empty else 0,
-                                   comments["date"][2] if not comments.empty else 0)
+                    html.Main(id = "tweet-3", children = [comments["text"][2]], style = {"font-size": "18px"}),
+                    html.P(id = "details_link3", children = ["Link: {}".format(comments["tweetURL"][2])], style = {"font-size": "14px"}),
+                    html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}".format(comments["comments"][2], comments["likes"][2], comments["retweets"][2], comments["date"][2])
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
             ]
         ),
     ],
-    style={"width": "25rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
+    style={"width": "55rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
 )
 
 ####################
@@ -136,7 +119,7 @@ def plot_cloud(wordcloud):
     # Display image
     plt.imshow(wordcloud) 
     # No axis details
-    plt.axis("off")
+    plt.axis("off");
 
 
 ####################
@@ -289,8 +272,7 @@ sidebar = html.Div(
                     'background-color': '#BEB5B4',
                     'border-radius': '25px',
                     'text-align': 'center',
-                    'position': 'relative'},
-                n_clicks=-1
+                    'position': 'relative'}
             )
             ,
         ]),
@@ -328,15 +310,6 @@ sidebar = html.Div(
 #####################
 
 contents = html.Div([
-    dbc.Modal(
-        [
-            dbc.ModalHeader(dbc.ModalTitle("Search Failed")),
-            dbc.ModalBody("The model cannot analyse the sentiments of the tweets in the given keyword and time period, please try again")
-        ],
-        id="modal_no_result",
-        size="lg",
-        is_open=False,
-    ),
     html.H4("Sentiment Analysis of Tweets"),
     dbc.Row([
         dbc.Col([
@@ -402,6 +375,10 @@ contents = html.Div([
     html.Div(id='main-content', children=[
     ]),
     html.Br(),
+    html.Br(),
+    html.H4("Top hashtags : {}".format(', '.join(most_frequent_words)) if not len(most_frequent_words) <3 else 'No popular hashtag'),
+    html.Br(),
+    html.Br(),
     dbc.Row([
         dbc.Col([
             # recommended tweets
@@ -434,87 +411,44 @@ app.layout = dbc.Row([
 ], [Input('tweet-rec', 'value')])
 
 def update_recs(value):
-    global df
-    df = update_df()
-
     if value == "By Comments":
         data = comments
     elif value == "By Likes":
         data = likes
     elif value == "By Retweets":
         data = retweets
-
-    null_tweet = "No post yet..."
-    null_message = "No details yet..."
-
-    tweet1 = tweet2 = tweet3 = null_tweet
-    details1 = details2 = details3 = null_message
-
-    if df.size >= 1:
-        tweet1 = data["text"][0]
-        details1 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
-
-    if df.size >= 2:
-        tweet2 = data["text"][1]
-        details2 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
-
-    if df.size >= 3:
-        tweet3 = data["text"][2]
-        details3 = "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
+    tweet1 = data["text"][0]
+    details1= "Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][0], data["likes"][0], data["retweets"][0], data["date"][0])
+    tweet2=data["text"][1]
+    details2="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][1], data["likes"][1], data["retweets"][1], data["date"][1])
+    tweet3=data["text"][2]
+    details3="Post has received {} comments, {} likes and {} retweets. Published on {}".format(data["comments"][2], data["likes"][2], data["retweets"][2], data["date"][2])
 
     return tweet1, details1, tweet2, details2, tweet3, details3
 
-@app.callback(
-    [Output("placeholder", 'children'),
-     Output('likes', 'figure'),
-     Output('comments', 'figure'),
-     Output('retweets', 'figure'),
-     Output('num_tweets', 'figure'),
-     Output('score by day', 'figure'),
-     Output('piechart', 'figure'),
-     Output('tweet-rec', 'value'),
-     Output('modal_no_result', 'is_open')],
-    [Input('search_button', 'n_clicks')],
-    [State('search-bar', 'value'),
-     State('calendar', 'start_date'),
-     State('calendar', 'end_date')],
-
-    running=[
-        (Output("search_button", "disabled"), True, False),
-    ]
-)
+@app.callback([
+    Output("placeholder", 'children'),
+    Input('search_button', 'n_clicks'),
+    Input('search-bar', 'value'),
+    Input('calendar', 'start_date'),
+    Input('calendar', 'end_date')
+])
 def run_backend(n_clicks, value, start_date, end_date):
     global cur, change, df
-    temp_likes = subplots('likes')
-    temp_comments = subplots('comments')
-    temp_retweets = subplots('retweets')
-    temp_numtweets = subplots('num_tweets')
-    temp_scorebyday = score_by_day()
-    temp_pie = piechart()
-    is_no_result = False
-
-    if value is not None and start_date is not None and end_date is not None:
-        change['start'] = datetime.strptime(start_date, "%Y-%m-%d")
-        change['end'] = datetime.strptime(end_date, "%Y-%m-%d")
-        change['keyword'] = value
-        if cur != change:
-            cur = change
-            runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
-            runner()  # Call the __call__ method
-            df = update_df()
-            if df.empty:
-                is_no_result = True
-            get_data()
-            temp_likes = subplots('likes')
-            temp_comments = subplots('comments')
-            temp_retweets = subplots('retweets')
-            temp_numtweets = subplots('num_tweets')
-            temp_scorebyday = score_by_day()
-            temp_pie = piechart()
-
-    return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", is_no_result
+    if start_date is not None and end_date is not None:
+        change['start']=datetime.strptime(start_date, "%Y-%m-%d")
+        change['end']=datetime.strptime(end_date, "%Y-%m-%d")
+        change['keyword']=value
+        if n_clicks:
+            # n_clicks=0
+            if cur!=change:
+                cur=change
+                runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
+                runner()  # Call the __call__ method
+    print("exiting caller...", start_date, end_date)
+    return [""]
 
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, threaded=True)
+    app.run_server(debug=True, threaded=False)
