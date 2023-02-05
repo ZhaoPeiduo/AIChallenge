@@ -37,7 +37,7 @@ def initialize_file():
 ####################
 cur = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
 change = {'start': datetime(2023, 1, 20), 'end': datetime(2023, 2, 4), 'keyword': "chatgpt"}
-
+    
 
 ####################
 # DATA IMPORT      #
@@ -49,22 +49,15 @@ def update_df():
     new_df = new_df.sort_values(by='date', ascending=False)
     return new_df
 
-
 def get_data():
     global df, comments, likes, retweets
     comments = df.sort_values(by="comments", ascending=False)
     likes = df.sort_values(by="likes", ascending=False)
     retweets = df.sort_values(by="retweets", ascending=False)
-
-    if df.size >= 3:
-        comments = comments.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-        likes = likes.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-        retweets = retweets.head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-    else:
-        comments = comments.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-        likes = likes.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-        retweets = retweets.head(df.size)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
-
+    show_count = 3 if len(df.index) > 3 else len(df.index) 
+    comments = comments.head(show_count)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+    likes = likes.head(show_count)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+    retweets = retweets.head(show_count)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
 
 df = update_df()
 comments = likes = retweets = pd.DataFrame()
@@ -185,7 +178,6 @@ card = dbc.Card(
     ],
     style={"width": "55rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
 )
-
 
 ####################
 # Word Cloud     #
@@ -364,7 +356,7 @@ sidebar = html.Div(
         ]),
         html.Br(),
         dbc.Progress(
-            value=50, id="animated-progress", animated=True, striped=True, color="success"
+            value=0, id="animated-progress", animated=True, striped=True, color="success"
         ),
         html.Br(),
         html.H5("Please choose a date range"),
@@ -507,9 +499,9 @@ app.layout = dbc.Row([
 
     dbc.Col(children=[
         contents
-    ], width=8)
+    ], width=8),
+    dcc.Interval(id = "timer", interval=500, disabled = False, n_intervals = 0)
 ])
-
 
 
 @app.callback([
@@ -618,8 +610,20 @@ def run_backend(n_clicks, value, start_date, end_date):
     computing = False
     return False, [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
            temp_msg, is_no_result
+           #, True
+
+@app.callback(
+    [Output('animated-progress', 'value')],
+    [Input('timer', 'n_intervals')], #trigger: after a specific time interval
+)
+def update_progress(n_intervals):
+    if Runner.TOTAL_TASKS != 0:
+        cur_progress = round(Runner.COMPLETE_TASKS / Runner.TOTAL_TASKS * 100)
+        return [cur_progress]
+    else:
+        return[0]
 
 
 if __name__ == '__main__':
     initialize_file()
-    app.run_server(debug=True, threaded=False)
+    app.run_server(debug=True, threaded=True)
