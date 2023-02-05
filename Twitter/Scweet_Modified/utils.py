@@ -254,7 +254,7 @@ def keep_scroling(driver, queue, tweet_ids, scrolling, tweet_parsed, limit, scro
                     tweet_ids.add(tweet_id)
                     queue.put(tweet)
                     last_date = str(tweet[2])
-                    print("Tweet made at: " + str(last_date) + " is found.")
+                    # print("Tweet made at: " + str(last_date) + " is found.")
                     tweet_parsed += 1
                     if tweet_parsed >= limit:
                         break
