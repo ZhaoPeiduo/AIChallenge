@@ -567,8 +567,7 @@ computing = False
      Output('piechart', 'figure'),
      Output('tweet-rec', 'value'),
      Output('hashtag_msg', 'children'),
-     Output('modal_no_result', 'is_open'),
-     ],
+     Output('modal_no_result', 'is_open')],
     [Input('search_button', 'n_clicks')],
     [State('search-bar', 'value'),
      State('calendar', 'start_date'),
@@ -592,7 +591,7 @@ def run_backend(n_clicks, value, start_date, end_date):
         change['end'] = datetime.strptime(end_date, "%Y-%m-%d")
         change['keyword'] = value
         if cur != change:
-            cur = change
+            cur = change.copy()
             computing = True
             runner = Runner(cur['start'], cur['end'], cur['keyword'], 40, "chrome")
             runner()  # Call the __call__ method
