@@ -13,6 +13,9 @@ from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
 from runner import Runner
+import itertools
+from collections import Counter
+
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
@@ -30,19 +33,35 @@ df = pd.read_csv('outputs/data.csv')
 df["date"] = pd.to_datetime(df["date"]).dt.date
 df = df.sort_values(by='date', ascending=False)
 
-#inital plan, not based on score yet
-text = df['text']
-str = text.to_string()
-text = df['text']
-type(text)
-usetext = ''.join(text)
+
+####################
+# hashtags     #
+####################
+# Define a function to extract hashtags from each sentence
+def extract_hashtags(sentence):
+    hashtags = [word.split("#")[1].split()[0] for word in sentence.split() if "#" in word]
+    return hashtags
+
+# Apply the function to the 'sentences' column
+df['hashtags'] = df['text'].apply(extract_hashtags)
+df = df[df['hashtags'].apply(lambda x: len(x) > 0)]
+flattened_words_list = list(itertools.chain(*df['hashtags'].values))
+
+# Get the frequency of each word
+word_frequency = dict(Counter(flattened_words_list))
+
+# Get the 3 most frequent words
+most_frequent_words = [word for word, frequency in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:3]]
+
+
+
 
 ####################
 # Code for recs   #
 ####################
-comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
-retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
+comments = df.sort_values(by="comments", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
+retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text", "tweetURL"]].reset_index()
 
 
 card = dbc.Card(
@@ -355,6 +374,10 @@ contents = html.Div([
     ]),
     html.Div(id='main-content', children=[
     ]),
+    html.Br(),
+    html.Br(),
+    html.H4("Top hashtags : {}".format(', '.join(most_frequent_words)) if not len(most_frequent_words) <3 else 'No popular hashtag'),
+    html.Br(),
     html.Br(),
     dbc.Row([
         dbc.Col([
