@@ -13,4 +13,5 @@ It is recommended to use a windows system to test our code.  For Macos users, yo
 Common Issues:
 
 - There may be firewall issues while installing chromedriver. If you find the search page freezes for a long time, please try to connect to other networks and try again.
+  Otherwise, please refer to the instructions in the TODO comment in runner.py
 - [Link](https://github.com/SergeyPirogov/webdriver_manager/issues) to webdriver-manager for troubleshoots on chromedriver installation. 
