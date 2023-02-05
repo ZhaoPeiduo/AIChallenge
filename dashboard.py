@@ -16,6 +16,9 @@ from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 from datetime import datetime
 from runner import Runner
+import itertools
+from collections import Counter
+
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
@@ -52,12 +55,28 @@ def get_data():
     likes = df.sort_values(by="likes", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
     retweets = df.sort_values(by="retweets", ascending=False).head(3)[["date", "comments", "retweets", "likes", "text"]].reset_index()
 
-#inital plan, not based on score yet
-text = df['text']
-str = text.to_string()
-text = df['text']
-type(text)
-usetext = ''.join(text)
+
+####################
+# hashtags     #
+####################
+# Define a function to extract hashtags from each sentence
+def extract_hashtags(sentence):
+    hashtags = [word.split("#")[1].split()[0] for word in sentence.split() if "#" in word]
+    return hashtags
+
+# Apply the function to the 'sentences' column
+df['hashtags'] = df['text'].apply(extract_hashtags)
+df = df[df['hashtags'].apply(lambda x: len(x) > 0)]
+flattened_words_list = list(itertools.chain(*df['hashtags'].values))
+
+# Get the frequency of each word
+word_frequency = dict(Counter(flattened_words_list))
+
+# Get the 3 most frequent words
+most_frequent_words = [word for word, frequency in sorted(word_frequency.items(), key=lambda item: item[1], reverse=True)[:3]]
+
+
+
 
 ####################
 # Code for recs   #
@@ -89,23 +108,25 @@ card = dbc.Card(
                 html.Div([
                     html.H4("# 1"),
                     html.Main(id = "tweet-1", children = [comments["text"][0] if not comments.empty else ""], style = {"font-size": "18px"}),
+                    html.P(id = "details_link1", children = ["Link: {}".format(comments["tweetURL"][0] if not comments.empty else "")], style = {"font-size": "14px"}),
                     html.P(id = "details-1", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][0] if not comments.empty else 0,
-                                   comments["likes"][0] if not comments.empty else 0,
-                                   comments["retweets"][0] if not comments.empty else 0,
-                                   comments["date"][0] if not comments.empty else 0)
-                    ], style = {"font-size": "10px"}),
+                            .format(comments["comments"][0] if not comments.empty else 0, 
+                                    comments["likes"][0] if not comments.empty else 0, 
+                                    comments["retweets"][0] if not comments.empty else 0, 
+                                    comments["date"][0] if not comments.empty else 0)
+                    ], style = {"font-size": "10px"})
                 ], className="card-text",),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 2"),
-                    html.Main(id = "tweet-2", children = [comments["text"][1]if not comments.empty else None], style = {"font-size": "18px"}),
+                    html.Main(id = "tweet-2", children = [comments["text"][1] if not comments.empty else ""], style = {"font-size": "18px"}),
+                    html.P(id = "details_link2", children = ["Link: {}".format(comments["tweetURL"][1] if not comments.empty else None)], style = {"font-size": "14px"}),
                     html.P(id = "details-2", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][1] if not comments.empty else 0,
-                                   comments["likes"][1] if not comments.empty else 0,
-                                   comments["retweets"][1] if not comments.empty else 0,
-                                   comments["date"][1] if not comments.empty else 0)
+                          .format(comments["comments"][1] if not comments.empty else 0, 
+                                  comments["likes"][1] if not comments.empty else 0, 
+                                  comments["retweets"][1] if not comments.empty else 0, 
+                                  comments["date"][1] if not comments.empty else 0)
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
                 html.Hr(),
@@ -118,12 +139,21 @@ card = dbc.Card(
                                    comments["likes"][2] if not comments.empty else 0,
                                    comments["retweets"][2] if not comments.empty else 0,
                                    comments["date"][2] if not comments.empty else 0)
+
+                    html.Main(id = "tweet-3", children = [comments["text"][2] if not comments.empty else ""], style = {"font-size": "18px"}),
+                    html.P(id = "details_link3", children = ["Link: {}".format(comments["tweetURL"][2])], style = {"font-size": "14px"}),
+                    html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
+                          .format(comments["comments"][2] if not comments.empty else 0,
+                                                           comments["likes"][2] if not comments.empty else 0,
+                                                           comments["retweets"][2] if not comments.empty else 0,
+                                                           comments["date"][2] if not comments.empty else 0)
+
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
             ]
         ),
     ],
-    style={"width": "25rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
+    style={"width": "55rem", "background-color": "#f8f9fa", "font-family": "Merriweather"},
 )
 
 ####################
@@ -401,6 +431,10 @@ contents = html.Div([
     ]),
     html.Div(id='main-content', children=[
     ]),
+    html.Br(),
+    html.Br(),
+    html.H4("Top hashtags : {}".format(', '.join(most_frequent_words)) if not len(most_frequent_words) <3 else 'No popular hashtag'),
+    html.Br(),
     html.Br(),
     dbc.Row([
         dbc.Col([
