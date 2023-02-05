@@ -93,7 +93,7 @@ if not df.empty:
 
 card = dbc.Card(
     [
-            dbc.CardBody(
+        dbc.CardBody(
             [
                 html.H4("Trending Posts", className="card-title"),
                 dcc.Dropdown(id = "tweet-rec",
@@ -133,21 +133,13 @@ card = dbc.Card(
                 html.Br(),
                 html.Div([
                     html.H4("# 3"),
-                    html.Main(id = "tweet-3", children = [comments["text"][2] if not comments.empty else None], style = {"font-size": "18px"}),
-                    html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][2] if not comments.empty else 0,
-                                   comments["likes"][2] if not comments.empty else 0,
-                                   comments["retweets"][2] if not comments.empty else 0,
-                                   comments["date"][2] if not comments.empty else 0)
-
                     html.Main(id = "tweet-3", children = [comments["text"][2] if not comments.empty else ""], style = {"font-size": "18px"}),
                     html.P(id = "details_link3", children = ["Link: {}".format(comments["tweetURL"][2])], style = {"font-size": "14px"}),
                     html.P(id = "details-3", children =["Post has received {} comments, {} likes and {} retweets. Published on {}"
                           .format(comments["comments"][2] if not comments.empty else 0,
-                                                           comments["likes"][2] if not comments.empty else 0,
-                                                           comments["retweets"][2] if not comments.empty else 0,
-                                                           comments["date"][2] if not comments.empty else 0)
-
+                                  comments["likes"][2] if not comments.empty else 0,
+                                  comments["retweets"][2] if not comments.empty else 0,
+                                  comments["date"][2] if not comments.empty else 0)
                     ], style = {"font-size": "10px"}),
                 ], className="card-text",),
             ]
