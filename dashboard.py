@@ -612,7 +612,7 @@ def run_backend(n_clicks, value, start_date, end_date):
             thread = threading.Thread(target=runner)
             thread.start()
             #runner()  # Call the __call__ method
-            while prog_val < 100:
+            while prog_val < 100 and runner.TOTAL_TASKS != 0:
                 prog_val = round((runner.COMPLETE_TASKS/runner.TOTAL_TASKS)*100)
                 time.sleep(1)
             thread.join
@@ -641,7 +641,7 @@ def run_backend(n_clicks, value, start_date, end_date):
 
 def update_progress(n):
     n = prog_val
-    return n
+    return [n]
 
 if __name__ == '__main__':
     initialize_file()
