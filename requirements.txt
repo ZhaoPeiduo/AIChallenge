@@ -9,5 +9,4 @@ dash
 requests
 plotly
 dash-bootstrap-components
-wordcloud
 matplotlib
