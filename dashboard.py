@@ -376,7 +376,13 @@ contents = html.Div([
     ]),
     html.Br(),
     html.Br(),
-    html.H4("Top hashtags : {}".format(', '.join(most_frequent_words)) if not len(most_frequent_words) <3 else 'No popular hashtag'),
+    dbc.Row([
+        html.Div([
+            html.Img(id="hashtag_img",src=app.get_asset_url('hashtag.png'), style={'display':'inline', 'width':'25px', 'height':'25px'}),
+            html.Span("  Top hashtags : {}".format(', '.join(most_frequent_words)) if not len(most_frequent_words) <3 else 'No popular hashtag', style={'style':'inline', 'font-size':'25px'})
+            ],
+            )
+        ]),
     html.Br(),
     html.Br(),
     dbc.Row([
