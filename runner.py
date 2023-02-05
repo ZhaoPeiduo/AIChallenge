@@ -26,6 +26,8 @@ class Runner:
     TOTAL_TASKS = 0
 
     def __init__(self, start: datetime, end: datetime, word: str, limit: int, driver_type: str):
+        Runner.COMPLETE_TASKS = 0
+        Runner.TOTAL_TASKS = 0
         self._start = start
         self._end = end
         self._word = word
@@ -37,15 +39,6 @@ class Runner:
         logging.getLogger("urllib3").setLevel(logging.WARNING)
         logging.getLogger("selenium").setLevel(logging.WARNING)
         return self.run()
-
-    def update_args(self,  start: datetime, end: datetime, word: str, limit: int, driver_type: str):
-        Runner.COMPLETE_TASKS = 0
-        Runner.TOTAL_TASKS = 0
-        self._start = start
-        self._end = end
-        self._word = word
-        self._limit = limit
-        self._driver_type = driver_type
 
     def producer(self, product_queue: queue.Queue, input_dict: Dict, driver_type: str) -> None:
         scraper.search_by_words(product_queue, input_dict, driver_type)
