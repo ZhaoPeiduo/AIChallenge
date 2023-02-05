@@ -133,51 +133,51 @@ card = dbc.Card(
                 html.Br(),
                 html.Div([
                     html.H4("# 1"),
-                    html.Main(id="tweet-1", children=[comments["text"][0] if comments.size >= 1 else ""],
+                    html.Main(id="tweet-1", children=[comments["text"][0] if len(comments.index) >= 1 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link1",
-                           children=["Link: {}".format(comments["tweetURL"][0] if comments.size >= 1 else "")],
+                           children=["Link: {}".format(comments["tweetURL"][0] if len(comments.index) >= 1 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-1",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][0] if comments.size >= 1 else 0,
-                                   comments["likes"][0] if comments.size >= 1 else 0,
-                                   comments["retweets"][0] if comments.size >= 1 else 0,
-                                   comments["date"][0] if comments.size >= 1 else 0)
+                           .format(comments["comments"][0] if len(comments.index) >= 1 else 0,
+                                   comments["likes"][0] if len(comments.index) >= 1 else 0,
+                                   comments["retweets"][0] if len(comments.index) >= 1 else 0,
+                                   comments["date"][0] if len(comments.index) >= 1 else 0)
                                      ], style={"font-size": "10px"})
                 ], className="card-text", ),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 2"),
-                    html.Main(id="tweet-2", children=[comments["text"][1] if comments.size >= 2 else ""],
+                    html.Main(id="tweet-2", children=[comments["text"][1] if len(comments.index) >= 2 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link2",
-                           children=["Link: {}".format(comments["tweetURL"][1] if comments.size >= 2 else "")],
+                           children=["Link: {}".format(comments["tweetURL"][1] if len(comments.index) >= 2 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-2",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][1] if comments.size >= 2 else 0,
-                                   comments["likes"][1] if comments.size >= 2 else 0,
-                                   comments["retweets"][1] if comments.size >= 2 else 0,
-                                   comments["date"][1] if comments.size >= 2 else 0)
+                           .format(comments["comments"][1] if len(comments.index) >= 2 else 0,
+                                   comments["likes"][1] if len(comments.index) >= 2 else 0,
+                                   comments["retweets"][1] if len(comments.index) >= 2 else 0,
+                                   comments["date"][1] if len(comments.index) >= 2 else 0)
                                      ], style={"font-size": "10px"}),
                 ], className="card-text", ),
                 html.Hr(),
                 html.Br(),
                 html.Div([
                     html.H4("# 3"),
-                    html.Main(id="tweet-3", children=[comments["text"][2] if comments.size >= 3 else ""],
+                    html.Main(id="tweet-3", children=[comments["text"][2] if len(comments.index) >= 3 else ""],
                               style={"font-size": "18px"}),
                     html.P(id="details_link3",
-                           children=["Link: {}".format(comments["tweetURL"][2] if comments.size >= 3 else "")],
+                           children=["Link: {}".format(comments["tweetURL"][2] if len(comments.index) >= 3 else "")],
                            style={"font-size": "14px"}),
                     html.P(id="details-3",
                            children=["Post has received {} comments, {} likes and {} retweets. Published on {}"
-                           .format(comments["comments"][2] if comments.size >= 3 else 0,
-                                   comments["likes"][2] if comments.size >= 3 else 0,
-                                   comments["retweets"][2] if comments.size >= 3 else 0,
-                                   comments["date"][2] if comments.size >= 3 else 0)
+                           .format(comments["comments"][2] if len(comments.index) >= 3 else 0,
+                                   comments["likes"][2] if len(comments.index) >= 3 else 0,
+                                   comments["retweets"][2] if len(comments.index) >= 3 else 0,
+                                   comments["date"][2] if len(comments.index) >= 3 else 0)
                                      ], style={"font-size": "10px"}),
                 ], className="card-text", ),
             ]
