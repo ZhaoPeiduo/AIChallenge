@@ -6,8 +6,9 @@ import random
 import threading
 from .utils import init_driver, log_search_page, keep_scroling, dowload_images
 
-DATA_DIR = "./outputs/"
-CSV_PATH = "./outputs/data.csv"
+DATA_DIR = os.path.join(os.curdir, "outputs")
+CSV_PATH = os.path.join(DATA_DIR, "data.csv")
+
 
 def scrape(queue, since, until=None, words=None, to_account=None, from_account=None, mention_account=None, interval=5, lang=None,
           headless=True, limit=float("inf"), display_type="Top", proxy=None, hashtag=None, save_images=False, filter_replies=False, proximity=False,
