@@ -611,6 +611,7 @@ def run_backend(n_clicks, value, start_date, end_date):
             temp_pie = piechart()
             temp_msg = get_most_frequent_words()
             msg = temp_msg
+            prog_val = 0
 
     print("return from call backend")
     return [""], temp_likes, temp_comments, temp_retweets, temp_numtweets, temp_scorebyday, temp_pie, "By Comments", \
